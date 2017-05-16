@@ -5,15 +5,20 @@ from functions import *
 import warnings
 from scipy.ndimage.measurements import label
 from collections import deque
+from keras.models import load_model
 warnings.filterwarnings("ignore", category=DeprecationWarning) 
 
-clf = pickle.load(open('../models/classifier.sav', 'rb'))
-normalizer = pickle.load(open('../models/normalizer.sav', 'rb'))
+#clf = pickle.load(open('../models/classifier.sav', 'rb'))
+#normalizer = pickle.load(open('../models/normalizer.sav', 'rb'))
+
+clf = load_model('../models/my_model.h5')
+
 
 def process_frame(frame):
 	frame = frame.astype(np.float32)
 	true_windows = []
 
+	"""
 	smallish_windows = slide_window(frame, x_start_stop=[500, None], y_start_stop=[420, 600], xy_window=(48, 48), xy_overlap=(0.5, 0.5))
 	for window in smallish_windows:
 		window_image = cv2.resize(frame[window[0][1]:window[1][1], window[0][0]:window[1][0]], (64, 64))
@@ -22,7 +27,7 @@ def process_frame(frame):
 		y_valid = clf.predict(X_valid_normalized)
 		if y_valid == 1:
 			true_windows.append(window)
-
+	
 	small_windows = slide_window(frame, x_start_stop=[600, None], y_start_stop=[420, 600], xy_window=(64, 64), xy_overlap=(0.5, 0.5))
 	for window in small_windows:
 		window_image = cv2.resize(frame[window[0][1]:window[1][1], window[0][0]:window[1][0]], (64, 64))
@@ -32,17 +37,17 @@ def process_frame(frame):
 		if y_valid == 1:
 			true_windows.append(window)
 
-
+	"""
 	medium_windows = slide_window(frame, x_start_stop=[600, None], y_start_stop=[400, 600], xy_window=(96, 96), xy_overlap=(0.5, 0.5))
 	for window in medium_windows:
 		window_image = cv2.resize(frame[window[0][1]:window[1][1], window[0][0]:window[1][0]], (64, 64))
 		X_valid = get_features(window_image)
-		X_valid_normalized = normalizer.transform(np.array(X_valid).reshape(1, -1))
-		y_valid = clf.predict(X_valid_normalized)
+		#X_valid_normalized = normalizer.transform(np.array(X_valid).reshape(1, -1))
+		y_valid = clf.predict([None,X_valid[1]])
 		if y_valid == 1:
 			true_windows.append(window)
 
-
+	"""
 	large_windows = slide_window(frame, x_start_stop=[600, None], y_start_stop=[400, 700], xy_window=(128, 128), xy_overlap=(0.5, 0.5))
 	for window in large_windows:
 		window_image = cv2.resize(frame[window[0][1]:window[1][1], window[0][0]:window[1][0]], (64, 64))
@@ -52,10 +57,11 @@ def process_frame(frame):
 		if y_valid == 1:
 			true_windows.append(window)
 
-
+	
 	print("Small windows: ", len(small_windows))
 	print("Medium windows: ", len(medium_windows))
 	print("Large windows: ", len(large_windows))
+	"""
 	print("True windows: ", len(true_windows))
 
 

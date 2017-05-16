@@ -20,22 +20,16 @@ def make_gray(image):
 	gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 	return gray_image
 
-
-
 #add heat
-#----------------------------------------------------
 def add_heat(heatmap, boxes):
-
     for box in boxes:
         heatmap[box[0][1]:box[1][1], box[0][0]:box[1][0]] += 1
     return heatmap
-
 
 #apply thresh
 def apply_threshold(heatmap, threshold):
     heatmap[heatmap <= threshold] = 0
     return heatmap
-
 
 #draw labeled boxes
 def draw_labeled_boxes(image, labels):
@@ -68,8 +62,6 @@ def draw_boxes(image, boxes, color = (0, 0, 1), thick = 5):
 		cv2.rectangle(draw_image, start, end, color, thick)
 	return draw_image
 
-
-
 #chage colorspace
 def change_colorspace(image, color_space):
     if color_space == 'HSV':
@@ -85,8 +77,6 @@ def change_colorspace(image, color_space):
 
     return new_colorspace
 
-
-
 #color histogram feature
 def color_hist(image, bins = 16, bins_range = (0,256), vis = False):
 	red = np.histogram(image[:,:,0], bins = bins, range = bins_range)
@@ -94,8 +84,6 @@ def color_hist(image, bins = 16, bins_range = (0,256), vis = False):
 	blue = np.histogram(image[:,:,2], bins = bins, range = bins_range)
 	color_hist_feature = np.concatenate((red[0], green[0], blue[0]))
 	return color_hist_feature
-
-
 
 #histogram of gradients feature
 def hist_of_gradients(img, orient, pix_per_cell, cell_per_block, vis = False):
@@ -110,39 +98,18 @@ def hist_of_gradients(img, orient, pix_per_cell, cell_per_block, vis = False):
                        visualise=False, feature_vector=True)
         return hog_feature
 
-
 #reduced size feature
 def reduce_and_flatten(image, new_size = (16,16)):
 	reduced_size_feature = cv2.resize(image, new_size).ravel()
 	return reduced_size_feature
 
-
-
 #combine features
 def get_features(image, mini_color_space = 'HSV', mini_size = (32,32), hog_orient = 9, hog_pix_per_cell = 8, hog_cell_per_block = 2):
-
-    #history of gradients
     hog_feature = hist_of_gradients(make_gray(image), orient = hog_orient, pix_per_cell = hog_pix_per_cell, cell_per_block = hog_cell_per_block, vis = False)
-
-    #mini HLS
-    mini_HLS_feature = reduce_and_flatten(change_colorspace(image, color_space = mini_color_space), new_size = mini_size)
-
-    #color histo
     color_histogram_feature = color_hist(image)
-
-    #try another mini colorspace
-    #mini_LUV_feature = reduce_and_flatten(change_colorspace(image, color_space = 'LUV'), new_size = mini_size)
-
-    #try another mini colorspace
-    #mini_YUV_feature = reduce_and_flatten(change_colorspace(image, color_space = 'YUV'), new_size = mini_size)
-
-    #combine
+    mini_HLS_feature = reduce_and_flatten(change_colorspace(image, color_space = mini_color_space), new_size = mini_size)
     X = np.concatenate((color_histogram_feature, mini_HLS_feature, hog_feature))
     return X
-
-
-
-
 
 #slide window
 def slide_window(image, x_start_stop=[None, None], y_start_stop=[None, None], 
@@ -178,7 +145,6 @@ def slide_window(image, x_start_stop=[None, None], y_start_stop=[None, None],
             window_list.append(((startx, starty), (endx, endy)))
     return window_list
 
-# windows = slide_window(test_image, x_start_stop=[None, None], y_start_stop=[None, None], xy_window=(64, 64), xy_overlap=(0.5, 0.5))
 
 
 
