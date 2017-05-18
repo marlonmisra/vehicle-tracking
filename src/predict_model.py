@@ -8,10 +8,10 @@ from collections import deque
 from keras.models import load_model
 warnings.filterwarnings("ignore", category=DeprecationWarning) 
 
-#clf = pickle.load(open('../models/classifier.sav', 'rb'))
-#normalizer = pickle.load(open('../models/normalizer.sav', 'rb'))
+clf = pickle.load(open('../models/classifier.sav', 'rb'))
+normalizer = pickle.load(open('../models/normalizer.sav', 'rb'))
 
-clf = load_model('../models/my_model.h5')
+#clf = load_model('../models/my_model.h5')
 
 
 def process_frame(frame):
@@ -42,8 +42,9 @@ def process_frame(frame):
 	for window in medium_windows:
 		window_image = cv2.resize(frame[window[0][1]:window[1][1], window[0][0]:window[1][0]], (64, 64))
 		X_valid = get_features(window_image)
-		#X_valid_normalized = normalizer.transform(np.array(X_valid).reshape(1, -1))
-		y_valid = clf.predict([None,X_valid[1]])
+		X_valid_normalized = normalizer.transform(np.array(X_valid).reshape(1, -1))
+		#y_valid = clf.predict([None,X_valid[1]])
+		y_valid = clf.predict(X_valid_normalized)
 		if y_valid == 1:
 			true_windows.append(window)
 

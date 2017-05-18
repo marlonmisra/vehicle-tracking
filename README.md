@@ -20,7 +20,7 @@ The goals/steps are the following:
 The project includes the following files:
 * functions.py contains all helper functions
 * process_data.py converts the images to feature vectors and saves those in X_test.npy, X_train.npy, y_test.npy, and y_train.npy
-* train_model.py contains the main SVM model
+* train_model.py contains the main model
 * process_frame.py contains the main function that is run on every frame of the video
 * pipeline.py reads each frame and applies the process_frame function
 * video_annotated.mp4 includes the output video
