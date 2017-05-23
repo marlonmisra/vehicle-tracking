@@ -7,27 +7,38 @@ from keras.models import Sequential
 from keras.layers import Dense
 from keras.utils import np_utils
 
-print("Loading data...")
-X_train = np.load('../data/model/processed/X_train.npy')
-y_train = np.load('../data/model/processed/y_train.npy')
-print("Finished loading training data")
-X_test = np.load('../data/model/processed/X_test.npy')
-y_test = np.load('../data/model/processed/y_test.npy')
-print("Finished loading testing data")
+def train_model():
+	print("Loading data...")
+	X_train = np.load('../data/model/processed/X_train.npy')
+	y_train = np.load('../data/model/processed/y_train.npy')
+	print("Finished loading training data")
+	X_test = np.load('../data/model/processed/X_test.npy')
+	y_test = np.load('../data/model/processed/y_test.npy')
+	print("Finished loading testing data")
 
-clf = LinearSVC(C = 0.05, class_weight={0: 1, 1: 1})
-t=time.time()
-print("Training samples: ", len(X_train))
-clf.fit(X_train, y_train)
-t2=time.time()
-print("Time (s) to train model:", round(t2-t, 2))
+	clf = LinearSVC()
+	t=time.time()
+	print("Training samples: ", len(X_train))
+	clf.fit(X_train, y_train)
+	t2=time.time()
+	print("Time (s) to train model:", round(t2-t, 2))
 
-pred = clf.predict(X_test)
-testing_accuracy = accuracy_score(pred, y_test)
-print("Test Accuracy of SVM: ", testing_accuracy)
+	pred = clf.predict(X_test)
+	testing_accuracy = accuracy_score(pred, y_test)
+	print("Test Accuracy of SVM: ", testing_accuracy)
 
-pickle.dump(clf, open("../models/classifier.sav", 'wb'))
-print("Classifier saved")
+	pickle.dump(clf, open("../models/classifier.sav", 'wb'))
+	print("Classifier saved")
+
+
+train_model()
+
+
+
+
+
+
+
 """
 
 X_train = X_train.astype('float32')

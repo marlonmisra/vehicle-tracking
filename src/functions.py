@@ -72,6 +72,8 @@ def change_colorspace(image, color_space):
         new_colorspace = cv2.cvtColor(image, cv2.COLOR_RGB2LUV)
     elif color_space == 'YUV':
         new_colorspace = cv2.cvtColor(image, cv2.COLOR_RGB2YUV)
+    elif color_space == 'YCrCb':
+        new_colorspace = cv2.cvtColor(image, cv2.COLOR_RGB2YCrCb)
     else:
     	print("Wrong colorspace selected")
 
@@ -99,16 +101,22 @@ def hist_of_gradients(img, orient, pix_per_cell, cell_per_block, vis = False):
         return hog_feature
 
 #reduced size feature
-def reduce_and_flatten(image, new_size = (16,16)):
+def reduce_and_flatten(image, new_size = (32,32)):
 	reduced_size_feature = cv2.resize(image, new_size).ravel()
 	return reduced_size_feature
 
 #combine features
-def get_features(image, mini_color_space = 'HSV', mini_size = (32,32), hog_orient = 9, hog_pix_per_cell = 8, hog_cell_per_block = 2):
-    hog_feature = hist_of_gradients(make_gray(image), orient = hog_orient, pix_per_cell = hog_pix_per_cell, cell_per_block = hog_cell_per_block, vis = False)
-    color_histogram_feature = color_hist(image)
-    mini_HLS_feature = reduce_and_flatten(change_colorspace(image, color_space = mini_color_space), new_size = mini_size)
-    X = np.concatenate((color_histogram_feature, mini_HLS_feature, hog_feature))
+def get_features(image, use_hog = True, use_color_hist = True, use_mini = True, mini_color_space = 'HSV', mini_size = (32,32), hog_orient = 9, hog_pix_per_cell = 8, hog_cell_per_block = 2):
+    X = np.array([])
+    if use_hog == True:
+        hog_feature = hist_of_gradients(make_gray(image), orient = hog_orient, pix_per_cell = hog_pix_per_cell, cell_per_block = hog_cell_per_block, vis = False)
+        X = np.append(X, hog_feature)
+    if use_color_hist == True:
+        color_histogram_feature = color_hist(image)
+        X = np.append(X, color_histogram_feature)
+    if use_mini == True:
+        mini_feature = reduce_and_flatten(change_colorspace(image, color_space = mini_color_space), new_size = mini_size)
+        X = np.append(X, mini_feature)
     return X
 
 #slide window
