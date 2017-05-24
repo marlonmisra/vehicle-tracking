@@ -6,7 +6,7 @@ Continuing with the self driving car projects, this one is about is about creati
 The goals/steps are the following:
 * Perform a Histogram of Oriented Gradients (HOG) feature extraction on a labeled training set of images and train a classifier Linear SVM classifier
 * Apply color transforms and append binned color features, as well as histograms of color, to the HOG feature vector. 
-* Implement a sliding-window technique and use the trained classifier to search for vehicles in images.
+* Implement a sliding-window technique and use the trained neural network classifier to search for vehicles in images.
 * Run the pipeline on a video stream (start with the test_video.mp4 and later implement on full project_video.mp4) and create a heat map of recurring detections frame by frame to reject outliers and follow detected vehicles.
 * Estimate a bounding box for vehicles detected.
 
