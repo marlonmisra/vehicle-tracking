@@ -31,6 +31,15 @@ def apply_threshold(heatmap, threshold):
     heatmap[heatmap <= threshold] = 0
     return heatmap
 
+#draw boxes
+def draw_boxes(image, boxes, color = (0, 0, 1), thick = 5):
+    draw_image = np.copy(image)
+    for box_coords in boxes:
+        start = box_coords[0]
+        end = box_coords[1]
+        cv2.rectangle(draw_image, start, end, color, thick)
+    return draw_image
+
 #draw labeled boxes
 def draw_labeled_boxes(image, labels):
     # Iterate through all detected cars
@@ -53,14 +62,6 @@ def make_gray(image):
     gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     return gray_image
 
-#draw boxes
-def draw_boxes(image, boxes, color = (0, 0, 1), thick = 5):
-	draw_image = np.copy(image)
-	for box_coords in boxes:
-		start = box_coords[0]
-		end = box_coords[1]
-		cv2.rectangle(draw_image, start, end, color, thick)
-	return draw_image
 
 #chage colorspace
 def change_colorspace(image, color_space):

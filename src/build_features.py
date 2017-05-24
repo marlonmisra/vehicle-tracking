@@ -69,7 +69,6 @@ def build_features():
 		images.append(vehicle_image)
 		y.append(1)
 
-
 	print("Finished reading car data")
 
 	#turn images into features
@@ -83,10 +82,6 @@ def build_features():
 	X = np.array(X)
 	y = np.array(y)
 
-	#shuffle
-	X, y = shuffle(X, y)
-	print("Finished shuffling data")
-
 	#normalize
 	X_scaler = StandardScaler().fit(X)
 	scaled_X = X_scaler.transform(X)
@@ -98,7 +93,7 @@ def build_features():
 
 	#train and testing set
 	X_train, X_test, y_train, y_test = train_test_split(scaled_X, y, test_size=test_fraction, random_state=42)
-	print("Finished splitting data")
+	print("Finished shuffling and splitting data")
 
 	#observation stats
 	print("----------------------------------")
@@ -115,7 +110,7 @@ def build_features():
 	np.save('../data/model/processed/X_test.npy', X_test)
 	np.save('../data/model/processed/y_test.npy', y_test)
 
-build_features()
+#build_features()
 
 
 

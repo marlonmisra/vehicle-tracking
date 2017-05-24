@@ -16,6 +16,8 @@ normalizer = pickle.load(open('../models/normalizer.sav', 'rb'))
 
 def process_frame(frame):
 	frame = frame.astype(np.float32)
+	frame = frame / 255.0
+
 	true_windows = []
 
 	smallest_windows = slide_window(frame, x_start_stop=[500, None], y_start_stop=[300, 500], xy_window=(48, 48), xy_overlap=(0.5, 0.5))
@@ -54,8 +56,6 @@ def process_frame(frame):
 		if y_valid == 1:
 			true_windows.append(window)
 
-	
-
 	print("Smallest windows: ", len(smallest_windows))
 	print("Small windows: ", len(small_windows))
 	print("Medium windows: ", len(medium_windows))
@@ -63,27 +63,25 @@ def process_frame(frame):
 	print("---------------------------------------")
 	print("True windows: ", len(true_windows))
 
-	heat = np.zeros_like(frame[:,:,0]).astype(np.float)
+	image_windows = draw_boxes(np.copy(frame), true_windows)
 
+	heat = np.zeros_like(frame[:,:,0]).astype(np.float)
 	for window in true_windows:
 		heat = add_heat(heat,true_windows)
-	
-	heat = apply_threshold(heat, 200)
-	heatmap = np.clip(heat, 0, 255)
-	
-	labels = label(heatmap)
+	heatmap_1= apply_threshold(heat, 5)
+	heatmap_2 = np.clip(heatmap_1, 0, 1)
 
-	draw_trues = draw_boxes(np.copy(frame), true_windows) #*255
+	labels = label(heatmap_2)
 
+	print(labels)
 	draw_image = draw_labeled_boxes(np.copy(frame), labels)
-	draw_image = draw_image * 255.0 #comment for ind frame
 
-	return draw_trues * 255
+	return draw_image
 
 
 
 test_images = read_images()
-drawn_image = process_frame(test_images[1])
+drawn_image = process_frame(test_images[0])
 plt.imshow(drawn_image)
 plt.show()
 
