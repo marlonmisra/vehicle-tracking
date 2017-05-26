@@ -1,17 +1,16 @@
 import glob 
 import cv2
 import matplotlib.pyplot as plt
-import matplotlib.image as mpimg
-from functions import *
 from skimage.feature import hog
 import numpy as np
+from functions import *
 
 #read and store test images
 def read_images():
 	test_images_names = glob.glob('../data/full_size/test_images/test*.jpg')
 	test_images = []
 	for test_image_name in test_images_names:
-		test_image = mpimg.imread(test_image_name)
+		test_image = plt.imread(test_image_name)
 		test_images.append(test_image)
 	return test_images
 
@@ -52,7 +51,7 @@ def draw_labeled_boxes(image, labels):
         # Define a bounding box based on min/max x and y
         bbox = ((np.min(nonzerox), np.min(nonzeroy)), (np.max(nonzerox), np.max(nonzeroy)))
         # Draw the box on the image
-        cv2.rectangle(image, bbox[0], bbox[1], (0,0,1), 6)
+        cv2.rectangle(image, bbox[0], bbox[1], (1,0,0), 4)
     # Return the image
     return image
 

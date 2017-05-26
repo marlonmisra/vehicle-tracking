@@ -13,7 +13,11 @@ small_window_size = (64, 64)
 medium_window_size = (96, 96)
 large_window_size = (128, 128)
 window_overlap = (0.5,0.5)
+deque_len = 5
 
+
+#GLOBAL
+heatmaps = deque(maxlen=deque_len)
 
 #LOAD MODELS AND NORMALIZER
 clf_svm = pickle.load(open('../models/SVM_model.sav', 'rb'))
@@ -68,27 +72,31 @@ def process_frame(frame, model_type = 'svm'):
 			if model_type == 'convolutional':
 				if convolutional_procedure(window_image):
 					true_windows.append(window)
-
-	print("True windows: ", len(true_windows))
+	
 	image_windows = draw_boxes(np.copy(frame), true_windows)
-	heat = np.zeros_like(frame[:,:,0]).astype(np.float)
-	for window in true_windows:
-		heat = add_heat(heat,true_windows)
-	heatmap_1= apply_threshold(heat, heatmap_threshold)
-	heatmap_2 = np.clip(heatmap_1, 0, 1)
-	labels = label(heatmap_2) #tuple with 1st element color-coded heatmap and second elment int with number of cars
-	image_final = draw_labeled_boxes(np.copy(frame), labels)
-	image_final = image_final * 255 #for video
+	print("True windows: ", len(true_windows))
 
-	return image_final
+	heatmap = np.zeros_like(frame[:,:,0]).astype(np.float)
+	if len(true_windows)>0:
+		heatmap = add_heat(heatmap, true_windows)
+		
+		heatmaps.append(heatmap)
+		if len(heatmaps)==deque_len:
+			heatmap = sum(heatmaps)
+		heatmap_1 = apply_threshold(heatmap, heatmap_threshold)
+		heatmap_2 = np.clip(heatmap_1, 0, 1)
+		labels = label(heatmap_2) #tuple with 1st element color-coded heatmap and second elment int with number of cars
+		image_final = draw_labeled_boxes(np.copy(frame), labels)
+	print('length', len(heatmaps))
+	return image_final * 255 # mulitply for video
+
 
 
 
 #test_images = read_images()
-#drawn_image = process_frame(test_images[0], model_type = model_choice)
-#plt.imshow(drawn_image)
+#a = process_frame(test_images[0], model_type = model_choice)
+#plt.imshow(a)
 #plt.show()
-
 
 
 
