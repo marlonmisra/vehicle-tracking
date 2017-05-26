@@ -120,6 +120,7 @@ def get_features(image, use_hog = True, use_color_hist = True, use_mini = True, 
         X = np.append(X, mini_feature)
     return X
 
+
 #slide window
 def slide_window(image, x_start_stop=[None, None], y_start_stop=[None, None], 
                     xy_window=(64, 64), xy_overlap=(0.5, 0.5)):
@@ -153,8 +154,6 @@ def slide_window(image, x_start_stop=[None, None], y_start_stop=[None, None],
             endy = starty + xy_window[1]
             window_list.append(((startx, starty), (endx, endy)))
     return window_list
-
-
 
 
 

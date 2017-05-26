@@ -2,6 +2,7 @@ from functions import *
 from sklearn.utils import shuffle
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
+from keras.utils import np_utils
 import pickle
 
 #PARAMS
@@ -11,12 +12,11 @@ use_color_hist_feature = True
 use_mini_feature = True
 mini_clr_space = 'YCrCb'
 mini_dimension = (32, 32)
-hog_orientations = 9
+hog_orientations = 15
 hog_pixels_per_cell = 8
 hog_cells_for_each_block = 2
 
-
-def build_features():
+def read_data():
 	#create lists for images and labels
 	images = []
 	y = []
@@ -71,16 +71,19 @@ def build_features():
 
 	print("Finished reading car data")
 
+	return images, y
+
+def build_standard_features(images_list, labels_list):
 	#turn images into features
 	X = []
-	for image in images:
+	for image in images_list:
 		feature = get_features(image, use_hog = use_hog_feature, use_color_hist = use_color_hist_feature, use_mini = use_mini_feature, mini_color_space = mini_clr_space , mini_size = mini_dimension, hog_orient = hog_orientations, hog_pix_per_cell = hog_pixels_per_cell, hog_cell_per_block = hog_cells_for_each_block)
 		X.append(feature)
 	print("Finished converting image data into features")
 
 	#convert to arrays
 	X = np.array(X)
-	y = np.array(y)
+	y = np.array(labels_list)
 
 	#normalize
 	X_scaler = StandardScaler().fit(X)
@@ -100,7 +103,7 @@ def build_features():
 	print("Total observations: ", len(X))
 	print("Car sample: ", len(y[y==1]))
 	print("Non-car samples: ", len(y[y==0]))
-	print("Length of feature vector: ", len(X[0]))
+	print("Length of feature vector: ", len(X))
 	print("Training observations: ", len(X_train))
 	print("Testing observations: ", len(X_test))
 
@@ -110,7 +113,35 @@ def build_features():
 	np.save('../data/model/processed/X_test.npy', X_test)
 	np.save('../data/model/processed/y_test.npy', y_test)
 
-#build_features()
+def build_conv_features(images_list, labels_list):
+	#convert to arrays
+	X = np.array(images_list)
+	y = np.array(labels_list)
+
+	#train and testing set
+	X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_fraction, random_state=42)
+	print("Finished shuffling and splitting data")
+
+	#observation stats
+	print("----------------------------------")
+	print("Total observations: ", len(X))
+	print("Car sample: ", len(y[y==1]))
+	print("Non-car samples: ", len(y[y==0]))
+	print("Shape of dataset: ", X.shape)
+	print("Training observations: ", len(X_train))
+	print("Testing observations: ", len(X_test))
+
+	#save to files
+	np.save('../data/model/processed/X_train_convolutional.npy', X_train)
+	np.save('../data/model/processed/y_train_convolutional.npy', y_train)
+	np.save('../data/model/processed/X_test_convolutional.npy', X_test)
+	np.save('../data/model/processed/y_test_convolutional.npy', y_test)
+
+
+
+#images_list, labels_list = read_data()
+#build_standard_features(images_list, labels_list)
+#build_conv_features(images_list, labels_list)
 
 
 
