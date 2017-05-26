@@ -97,7 +97,7 @@ def train_convolutional_neural():
 	model.save('../models/convolutional_model.h5')
 
 
-train_SVM()
+#train_SVM()
 #train_neural()
 #train_convolutional_neural()
 

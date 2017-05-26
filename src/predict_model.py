@@ -1,6 +1,4 @@
 import pickle
-from moviepy.editor import *
-from IPython.display import HTML
 from functions import *
 from scipy.ndimage.measurements import label
 from collections import deque
@@ -9,7 +7,7 @@ from keras.models import load_model
 
 #PARAMS
 model_choice = 'svm' #svm, neural, convolutional
-heatmap_threshold = 7
+heatmap_threshold = 10
 smallest_window_size = (48, 48)
 small_window_size = (64, 64)
 medium_window_size = (96, 96)
@@ -47,7 +45,7 @@ def convolutional_procedure(img):
 
 
 #PROCESS FRAME
-def process_frame(frame, model_type):
+def process_frame(frame, model_type = 'svm'):
 	frame = frame.astype(np.float32)
 	frame /= 255.0
 	
@@ -80,15 +78,16 @@ def process_frame(frame, model_type):
 	heatmap_2 = np.clip(heatmap_1, 0, 1)
 	labels = label(heatmap_2) #tuple with 1st element color-coded heatmap and second elment int with number of cars
 	image_final = draw_labeled_boxes(np.copy(frame), labels)
+	image_final = image_final * 255 #for video
 
 	return image_final
 
 
 
-test_images = read_images()
-drawn_image = process_frame(test_images[0], model_type = model_choice)
-plt.imshow(drawn_image)
-plt.show()
+#test_images = read_images()
+#drawn_image = process_frame(test_images[0], model_type = model_choice)
+#plt.imshow(drawn_image)
+#plt.show()
 
 
 
