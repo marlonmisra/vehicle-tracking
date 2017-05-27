@@ -19,7 +19,7 @@ def make_gray(image):
 	gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 	return gray_image
 
-#add heat
+#add heat to heatmap
 def add_heat(heatmap, boxes):
     for box in boxes:
         heatmap[box[0][1]:box[1][1], box[0][0]:box[1][0]] += 1
