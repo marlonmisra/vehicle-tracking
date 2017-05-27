@@ -3,14 +3,15 @@ import pickle
 import numpy as np 
 from sklearn.svm import LinearSVC
 from sklearn.metrics import accuracy_score
+from sklearn.model_selection import GridSearchCV
 from keras.models import Sequential
 from keras.layers import Dense, Dropout, Conv2D, Flatten, MaxPooling2D
 from keras.utils import np_utils
 
 #PARAMS
 #both neurals
-dropout_prob = 0.8
-activation_function = 'softmax'
+dropout_prob = 0.6
+activation_function = 'relu'
 loss_function = 'categorical_crossentropy'
 verbose_level = 1
 
@@ -20,7 +21,7 @@ neural_epochs = 10
 
 #conv neural
 convolutional_batches = 64
-convolutional_epochs = 10
+convolutional_epochs = 25
 
 
 #READ DATA
@@ -39,7 +40,8 @@ y_test_convolutional = np.load('../data/model/processed/y_test_convolutional.npy
 
 #SVM
 def train_SVM():
-	clf = LinearSVC()
+	params = {'C':[0.01, 0.1]}
+	clf = GridSearchCV(LinearSVC(), params)
 	t=time.time()
 	print("Training samples: ", len(X_train))
 	clf.fit(X_train, y_train)
@@ -49,6 +51,8 @@ def train_SVM():
 	pred = clf.predict(X_test)
 	testing_accuracy = accuracy_score(pred, y_test)
 	print("Test Accuracy of SVM: ", testing_accuracy)
+
+	print("Parameters: ", clf.best_params_)
 
 	pickle.dump(clf, open("../models/SVM_model.sav", 'wb'))
 	print("Classifier saved")
@@ -81,23 +85,22 @@ def train_convolutional_neural():
 	model.add(Conv2D(filters=16, kernel_size=(3, 3), padding='valid', input_shape=(64, 64, 3)))
 	model.add(MaxPooling2D(pool_size = (3,3)))
 	model.add(Flatten())
-	#rem
-	model.add(Dense(64))
+	model.add(Dense(128,activation=activation_function))
 	model.add(Dropout(rate=dropout_prob))
-	model.add(Dense(32))
+	model.add(Dense(64,activation=activation_function))
 	model.add(Dropout(rate=dropout_prob))
-	model.add(Dense(16))
+	model.add(Dense(32,activation=activation_function))
 	model.add(Dropout(rate=dropout_prob))
-	model.add(Dense(8))
-	#rem
-	model.add(Dense(2, activation=activation_function))
+	model.add(Dense(16,activation=activation_function))
+	model.add(Dropout(rate=dropout_prob))
+	model.add(Dense(2,activation='softmax'))
 	model.summary()
 	model.compile(loss=loss_function, optimizer='adam', metrics=['accuracy'])
 	history = model.fit(X_train_convolutional, y_train_cat, batch_size=convolutional_batches, epochs = convolutional_epochs, verbose = verbose_level, validation_data=(X_test_convolutional, y_test_cat))
 	model.save('../models/convolutional_model.h5')
 
 
-#train_SVM()
+train_SVM()
 #train_neural()
 #train_convolutional_neural()
 
