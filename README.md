@@ -28,14 +28,16 @@ Our raw data consists of 64x64 images which are labeled as either car or not car
 
 ### Data processing for convolutional neural networks
 
-Preparing data for a convolutional network is straighforward because you're not required to do much feature engineering - instead, the first few layers of the neural net will do that for you (edge detection, etc.). As a result, the function `build_conv_features(images_list, labels_list` is really simple - it just takes each image and converrts it to a NumPy array. Then, it splits the data into training and testing sets.
+Preparing data for a convolutional network is straighforward because you don't have to do much feature engineering - instead, the first few layers of the neural net will do that for you (edge detection, etc.). As a result, the function `build_conv_features(images_list, labels_list` is really simple - it just takes each image and converts it to a NumPy array. 
 
 ### Data processing for other classifiers
 
 **Background**
+
 We also want to try other models like Support Vector Machines. For classifiers like that it's important to first do feature engineering. Otherwise the data is too complex and the model will take too long to train. In addition, many feature extraction techniques have been explored by others and are proven to work well for this type of task. 
 
 **Histogram of oriented gradients (HOG)**
+
 HOG's are known to be good predictors of object presence. They work by first calculating the gradient magnitude and direction at each pixel. Then, the individual pixel values are grouped into cells of size x*x. Then, for each cell a histogram of gradient directions is computed (where magnitude is also considered). When you do this for all cells and plot a result you begin to see a representation of the original structure, and that is what a HOG is. The reason this feature is so useful is because it's robust to changes in color and small variations in shape. To implement, I used the `hog()` function from skimage.feature. The output is a vector which I later combine to the other features. The following parameters worked best for me.  
 
 ```python
@@ -44,6 +46,7 @@ hog_pixels_per_cell = 8
 ```
 
 **Color histogram**
+
 The color histogram is similar to the HOG. I decided to include it so that the model could make use of color information. The function to extract the color features was defined as follows.
 
 ```python
@@ -56,6 +59,7 @@ def color_hist(image, bins = 16, bins_range = (0,256), vis = False):
 ```
 
 **Colorspace-transformed flattened reduced image**
+
 The purpose of this feature is to capture as much as possible from the raw image, while still significantly reducing complexity. The approach to derive this feature is to (1) convert the RGB image to a more useful colorspace, (2) resize the image to be smaller and (3) flatten the image. The two functions below were applied in sequence with the following parameters. 
 
 ```python
@@ -63,6 +67,7 @@ color_space = 'YCrCb'
 new_size = (32, 32)
 ```
 
+```python
 def change_colorspace(image, color_space):
     if color_space == 'HSV':
         new_colorspace = cv2.cvtColor(image, cv2.COLOR_RGB2HSV)
@@ -82,17 +87,28 @@ def change_colorspace(image, color_space):
 def reduce_and_flatten(image, new_size = (32,32)):
 	reduced_size_feature = cv2.resize(image, new_size).ravel()
 	return reduced_size_feature
-
+```
 
 **Combining the features into a single feature**
-The previous 3 feature extraction techniques.
 
+The previous 3 feature extraction techniques each returned a vector. This means that to combine them, we can simply append them to each other. The function I defined to this is below. I defined it in a way that lets me exclude features, so that I can test if that improves accuracy. 
 
+```python
+def get_features(image, use_hog = True, use_color_hist = True, use_mini = True, mini_color_space = 'HSV', mini_size = (32,32), hog_orient = 9, hog_pix_per_cell = 8, hog_cell_per_block = 2):
+    X = np.array([])
+    if use_hog == True:
+        hog_feature = hist_of_gradients(make_gray(image), orient = hog_orient, pix_per_cell = hog_pix_per_cell, cell_per_block = hog_cell_per_block, vis = False)
+        X = np.append(X, hog_feature)
+    if use_color_hist == True:
+        color_histogram_feature = color_hist(image)
+        X = np.append(X, color_histogram_feature)
+    if use_mini == True:
+        mini_feature = reduce_and_flatten(change_colorspace(image, color_space = mini_color_space), new_size = mini_size)
+        X = np.append(X, mini_feature)
+    return X
+```
 
-
-
-
-Feature extraction takes the raw image data we have and builds derives features that have high predictive power and less complexity. 
+ 
 
 **Approach**
 
