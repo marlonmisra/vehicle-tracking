@@ -7,4 +7,4 @@ def process_video(input_path, output_path):
 	output_clip = input_file.fl_image(process_frame)
 	output_clip.write_videofile(output_path, audio=False)
 
-process_video("../data/full_size/test_videos/test_video_1.mp4", "../results/test_videos/video_annotated_1_annotated.mp4")
+process_video("../data/full_size/test_videos/test_video_2.mp4", "../results/test_videos/video_annotated_2_annotated.mp4")

@@ -1,30 +1,57 @@
 ## Vehicle tracking project
 
 ### Introduction 
-Continuing with the self driving car projects, this one is about is about creating a pipeline that looks at dashcam footage and detects and tracks cars. 
+After building two lane detection pipelines (one simple, one advanced), this project is about another fundamental problem in self driving cars - the detection other objects. Again, we're using a single front facing car camera for our input video feed. The output is an annotated version of the input feed that includes rectangles around the objects. For this project, we're strictly focused on the detection of other cars, but the model can easily be trained on trucks, humans, traffic signs, or other objects. 
 
-The goals/steps are the following:
-* Perform a Histogram of Oriented Gradients (HOG) feature extraction on a labeled training set of images and train a classifier Linear SVM classifier
-* Apply color transforms and append binned color features, as well as histograms of color, to the HOG feature vector. 
-* Implement a sliding-window technique and use the trained neural network classifier to search for vehicles in images.
-* Run the pipeline on a video stream (start with the test_video.mp4 and later implement on full project_video.mp4) and create a heat map of recurring detections frame by frame to reject outliers and follow detected vehicles.
-* Estimate a bounding box for vehicles detected.
+The steps I'll describe are: 
+* Exploring different feature engineering techniques, including using a histogram of oriented gradients (HOG), a histogram of color, and minimization and flattening of the full input image. 
+* Comparing different classifiers, including a Support Vector Machine (SVM), a simple neural net, and a convolutional neural (fow which I used raw image inputs)
+* Implementing a sliding-window technique to move across the input image and search for cars using the trained classifier. 
+* Running the pipeline on a video stream and making use of prior frames to reduce false positives. 
+* Estimating boundinging boxes for detected vehicles
 
 
 [//]: # (Image References)
-[image1]: ./output_image/output_image.png "Output image"
-
 
 
 ### Files and project navigation 
 The project includes the following files:
-* functions.py contains helper functions
-* process_data.py converts the images to feature vectors and saves those in X_test.npy, X_train.npy, y_test.npy, and y_train.npy
-* train_model.py contains the main model
-* process_frame.py contains the main function that is run on every frame of the video
-* pipeline.py reads each frame and applies process_frame function
-* video_annotated.mp4 is the annotated video
+* The data/model folder contains image data for training (vehicle or not a vehicle) - it contains both the raw image data and the processed image data that was saved after feature extraction. The data/full_size folder contains test images and test videos that are full size (i.e. the front-facing car camera data).
+* The models folder contains saved parameters for the SVM classifier, the simple neural net classifier, the convolutional neural net classifier, and a normalizer. 
+* The results folder contains annotated results for test images and test videos. 
+* The src folder contains all Python scripts. Specifically build_features.py for feature extraction, functions.py for helper functions, pipeline.py for video processing, predict\_model.py for model predictions, and train\_model.py for model training. 
 
+
+### Data 
+
+Our raw data consists of 64x64 images which are labeled as either car or not car. In total we have 10,885 samples, of which 1,917 (17.6%) are labeled as car, and the remainder (82.4%) are labeled as not car. We're going to prepare two separate sets of features with this data - the first for a convolutional neural network, and the second for other classifiers.
+
+### Data processing for convolutional neural networks
+
+Preparing data for a convolutional network is straighforward because you're not required to do much feature engineering - instead, the first few layers of the neural net will do that for you (edge detection, etc.). As a result, the function `build_conv_features(images_list, labels_list` is really simple - it just takes each image and converrts it to a NumPy array. Then, it splits the data into training and testing sets.
+
+### Data processing for other classifiers
+
+**Background**
+We also want to try other models like Support Vector Machines. For classifiers like that it's important to first do feature engineering. Otherwise the data is too complex and the model will take too long to train. In addition, many feature extraction techniques have been explored by others and ar proven to work well. 
+
+**Histogram of oriented gradients (HOG)**
+
+
+**Color histogram**
+
+**Flattened minimized input**
+
+
+
+
+
+
+Feature extraction takes the raw image data we have and builds derives features that have high predictive power and less complexity. 
+
+**Approach**
+
+**Approach**
 
 ### Histogram of gradients
 One of the features that I used was a histogram of gradients or HOG. The technique counts occurrences of gradient orientation in localized portions of an image. The image I used as input was a grayscale image - this is sufficient because grayscale images show edges well. The function is defined in functions.py and it is called with parameters in process_data.py. I came up with the following parameters after starting with the provided ones and visually comparing results of various parm combinations. 

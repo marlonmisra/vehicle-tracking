@@ -140,8 +140,8 @@ def build_conv_features(images_list, labels_list):
 
 
 images_list, labels_list = read_data()
-#build_standard_features(images_list, labels_list)
-#build_conv_features(images_list, labels_list)
+build_standard_features(images_list, labels_list)
+build_conv_features(images_list, labels_list)
 
 
 

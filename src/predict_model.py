@@ -7,13 +7,13 @@ from keras.models import load_model
 
 #PARAMS
 model_choice = 'svm' #svm, neural, convolutional
-heatmap_threshold = 6 #adjust to 5 for video, 0 for image
+heatmap_threshold = 25 #adjust to 5 for video, 0 for image
 smallest_window_size = (48, 48)
 small_window_size = (64, 64)
 medium_window_size = (96, 96)
 large_window_size = (128, 128)
-window_overlap = (0.5,0.5)
-deque_len = 5
+window_overlap = (0.75,0.75)
+deque_len = 7
 
 #GLOBAL
 heatmaps = deque(maxlen=deque_len)
@@ -52,7 +52,7 @@ def process_frame(frame, model_type = 'svm'):
 	frame = frame.astype(np.float32)
 	frame /= 255.0
 	
-	smallest_windows = slide_window(frame, x_start_stop=[500, None], y_start_stop=[300, 500], xy_window=smallest_window_size, xy_overlap=window_overlap)
+	smallest_windows = slide_window(frame, x_start_stop=[500, None], y_start_stop=[320, 500], xy_window=smallest_window_size, xy_overlap=window_overlap)
 	small_windows = slide_window(frame, x_start_stop=[0, None], y_start_stop=[350, 550], xy_window=small_window_size, xy_overlap=window_overlap)
 	medium_windows = slide_window(frame, x_start_stop=[0, None], y_start_stop=[400, 600], xy_window=medium_window_size, xy_overlap=window_overlap)
 	large_windows = slide_window(frame, x_start_stop=[0, None], y_start_stop=[450, 700], xy_window=large_window_size, xy_overlap=window_overlap)
@@ -82,13 +82,13 @@ def process_frame(frame, model_type = 'svm'):
 		heatmaps.append(heatmap)
 		if len(heatmaps)==deque_len:
 			heatmap = sum(heatmaps)
-		heatmap_1 = apply_threshold(heatmap, heatmap_threshold)
-		heatmap_2 = np.clip(heatmap_1, 0, 1)
+		heatmap_2 = apply_threshold(heatmap, heatmap_threshold)
 		labels = label(heatmap_2) #tuple with 1st element color-coded heatmap and second elment int with number of cars
 		image_final = draw_labeled_boxes(np.copy(frame), labels)
+	else:
+		image_final = np.copy(frame)
 	print('length', len(heatmaps))
 	return image_final * 255 #for video
-	#return image_final
 
 #test_images = read_images()
 #a = process_frame(test_images[0], model_type = model_choice)
