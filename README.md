@@ -126,6 +126,7 @@ def train_SVM():
 
 
 **Approach 2 - Neural network with derived features**
+
 The second technique I tried was a standard neural network. I still used the derived features because I figured the raw features were best left to the the last approach (a conv. neural network).
 
 I experimented with different network architectures, layer types, and parameters. Ultimately, I found standard dense layers to work best, coupled with Dropout regularization layers to teach the model redundancy. I used a softmax activation function on the last layer so that I could use categorical crossentropy as the loss function. 
@@ -159,6 +160,7 @@ def train_neural():
 
 
 **Approach 3 - Convolutional neural network with raw features**
+
 For this last approach I decided to use raw features rather than the derived features. I did this because the whole point of a convolutional layer is to be able to handle and make sense of 3 dimensional images inputs and derive better features for successive layers. Immidiately after the convolutional layer, I also made use of a MaxPooling2D layer to squeeze the spatial dimensions and reduce commplexity. 
 
 With the setup below I was able to achieve a testing accuracy of 97.6%.
