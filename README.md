@@ -26,11 +26,8 @@ The project includes the following files:
 
 Our raw data consists of 64x64 images which are labeled as either car or not car. In total we have 10,885 samples, of which 1,917 (17.6%) are labeled as car, and the remainder (82.4%) are labeled as not car. We're going to prepare two separate sets of features with this data - the first for a convolutional neural network, and the second for other classifiers.
 
-### Data processing for convolutional neural networks
 
-Preparing data for a convolutional network is straighforward because you don't have to do much feature engineering - instead, the first few layers of the neural net will do that for you (edge detection, etc.). As a result, the function `build_conv_features(images_list, labels_list` is really simple - it just takes each image and converts it to a NumPy array. 
-
-### Data processing for other classifiers
+### Feature extraction
 
 **Background**
 
@@ -58,7 +55,7 @@ def color_hist(image, bins = 16, bins_range = (0,256), vis = False):
 	return color_hist_feature
 ```
 
-**Colorspace-transformed flattened reduced image**
+**Colorspace-transformed reduced image**
 
 The purpose of this feature is to capture as much as possible from the raw image, while still significantly reducing complexity. The approach to derive this feature is to (1) convert the RGB image to a more useful colorspace, (2) resize the image to be smaller and (3) flatten the image. The two functions below were applied in sequence with the following parameters. 
 
@@ -91,7 +88,7 @@ def reduce_and_flatten(image, new_size = (32,32)):
 
 **Combining the features into a single feature**
 
-The previous 3 feature extraction techniques each returned a vector. This means that to combine them, we can simply append them to each other. The function I defined to this is below. I defined it in a way that lets me exclude features, so that I can test if that improves accuracy. 
+The previous 3 feature extraction techniques each returned a vector. This means that to combine them, we can simply append them to each other. The function I defined to this is below. I defined it in a way that lets me exclude any one of the three features, so that I can test if that improves accuracy. 
 
 ```python
 def get_features(image, use_hog = True, use_color_hist = True, use_mini = True, mini_color_space = 'HSV', mini_size = (32,32), hog_orient = 9, hog_pix_per_cell = 8, hog_cell_per_block = 2):
@@ -108,11 +105,101 @@ def get_features(image, use_hog = True, use_color_hist = True, use_mini = True, 
     return X
 ```
 
- 
+### Classifiers and training
 
-**Approach**
+**Approach 1 - Support Vector Machine with derived features**
 
-**Approach**
+I implemented the SVM using the Keras LinearSVM module. I also utilized GridSearchCV to test a range of C parameters. The C parameter tells the SVM optimization how important it is to avoid misclassifying each training example. For large values of C, the optimization will choose a smaller-margin hyperplane if that hyperplane does a better job of classifying all the training points. Conversely, a small C value will cause the optimizer to look for a larger-margin separating hyperplane, even if that implies more misclassification. 
+
+I was able to achieve an accuracy of 98.1% using C = 0.01. 
+
+```python
+def train_SVM():
+	params = {'C':[0.001, 0.01, 0.1, 1, 10]}
+	clf = GridSearchCV(LinearSVC(), params)
+	clf.fit(X_train, y_train)
+	pred = clf.predict(X_test)
+	testing_accuracy = accuracy_score(pred, y_test)
+	pickle.dump(clf, open("../models/SVM_model.sav", 'wb'))
+	print("Classifier saved")
+```
+
+
+**Approach 2 - Neural network with derived features**
+The second technique I tried was a standard neural network. I still used the derived features because I figured the raw features were best left to the the last approach (a conv. neural network).
+
+I experimented with different network architectures, layer types, and parameters. Ultimately, I found standard dense layers to work best, coupled with Dropout regularization layers to teach the model redundancy. I used a softmax activation function on the last layer so that I could use categorical crossentropy as the loss function. 
+
+With the setup below I was able to achieve a testing accuracy of 97.6%. 
+
+```python
+dropout_prob = 0.6
+loss_function = 'categorical_crossentropy'
+neural_batches = 64
+neural_epochs = 10 
+```
+
+```python
+def train_neural():
+	y_train_cat = np_utils.to_categorical(y_train, 2) 
+	y_test_cat = np_utils.to_categorical(y_test, 2)
+	model = Sequential()
+	model.add(Dense(128, input_shape=(4884,)))
+	model.add(Dropout(rate=dropout_prob))
+	model.add(Dense(64))
+	model.add(Dropout(rate=dropout_prob))
+	model.add(Dense(32))
+	model.add(Dense(2, activation=softmax))
+	model.summary()
+	model.compile(loss=loss_function, optimizer='adam', metrics=['accuracy'])
+	history = model.fit(X_train, y_train_cat, batch_size=neural_batches, epochs = neural_epochs, verbose = verbose_level, validation_data=(X_test, y_test_cat))
+	model.save('../models/neural_model.h5')
+```
+
+
+
+**Approach 3 - Convolutional neural network with raw features**
+For this last approach I decided to use raw features rather than the derived features. I did this because the whole point of a convolutional layer is to be able to handle and make sense of 3 dimensional images inputs and derive better features for successive layers. Immidiately after the convolutional layer, I also made use of a MaxPooling2D layer to squeeze the spatial dimensions and reduce commplexity. 
+
+With the setup below I was able to achieve a testing accuracy of 97.6%.
+
+```python
+dropout_prob = 0.6
+activation_function = 'relu'
+loss_function = 'categorical_crossentropy'
+convolutional_batches = 64
+convolutional_epochs = 25
+```
+
+```python
+def train_convolutional_neural():
+	y_train_cat = np_utils.to_categorical(y_train_convolutional, 2) 
+	y_test_cat = np_utils.to_categorical(y_test_convolutional, 2)
+	model = Sequential()
+	model.add(Conv2D(filters=16, kernel_size=(3, 3), padding='valid', input_shape=(64, 64, 3)))
+	model.add(MaxPooling2D(pool_size = (3,3)))
+	model.add(Flatten())
+	model.add(Dense(128,activation=activation_function))
+	model.add(Dropout(rate=dropout_prob))
+	model.add(Dense(64,activation=activation_function))
+	model.add(Dropout(rate=dropout_prob))
+	model.add(Dense(32,activation=activation_function))
+	model.add(Dropout(rate=dropout_prob))
+	model.add(Dense(16,activation=activation_function))
+	model.add(Dropout(rate=dropout_prob))
+	model.add(Dense(2,activation='softmax'))
+	model.summary()
+	model.compile(loss=loss_function, optimizer='adam', metrics=['accuracy'])
+	history = model.fit(X_train_convolutional, y_train_cat, batch_size=convolutional_batches, epochs = convolutional_epochs, verbose = verbose_level, validation_data=(X_test_convolutional, y_test_cat))
+	model.save('../models/convolutional_model.h5')
+```
+
+
+
+
+
+
+-----------
 
 ### Histogram of gradients
 One of the features that I used was a histogram of gradients or HOG. The technique counts occurrences of gradient orientation in localized portions of an image. The image I used as input was a grayscale image - this is sufficient because grayscale images show edges well. The function is defined in functions.py and it is called with parameters in process_data.py. I came up with the following parameters after starting with the provided ones and visually comparing results of various parm combinations. 
@@ -120,17 +207,9 @@ One of the features that I used was a histogram of gradients or HOG. The techniq
 * hog_pix_per_cell = 8
 * hog_cell_per_block = 2
 
-
-### Other features
-In addition to a HOG, I also made use of a "mini HLS feature" and a "color histogram". For the former, I utilized the HLS space because exploratory analysis suggested the cars stands out more clearly in this space. I combined that transformation with a reduce_and_flatten function which shrinks the image to 16x16. For the latter, the color histogram was a straightforward RGB histogram with 16 bins. I then concatenated all features (HOG, mini HLS feature, color histogram).
-
 ### Processing
 After consolidating my data, I shuffled it using the sklearn `shuffle()` function. Then I normalized the data using the sklearn `StandardScaler` function. Finally, I split the data into training/testing sets using the sklearn `train_test_split` function.
 
-### Model
-I utilized a straighforward Linear Support Vector Machine (SVM) model from sklearn. After training multiple times, I noticed that modifying the C parameter and making it smaller to 0.005 helped to increase testing accuracy (although training accuracy worsened).
-
-Training was done on 5,380 observations and testing on 1346 observations (20% of total).
 
 ### Window search and model tuning
 To do the window search, I made use of 4 different window sizes (48 x 48, 64 x 64, 96 x 96, 128 x 128). This was necessary because cars near the bottom of the image will appear much larger than the ones in the back. Because of this fact, I also restricted the search to the y values where it made sense to look. For example, I didn't use the largest 128*128 filter near the top of the image where cars, if they appear, would be much smaller. I also overall restricted the search area to exclude the top part of the image that is mostly consumed by the sky. For every window position, I got the image at at that area and ran the SVM model. For window for which a match was found, I added the window parameters to a list called true_windows. 
