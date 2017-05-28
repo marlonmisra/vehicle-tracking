@@ -106,6 +106,7 @@ def get_features(image, use_hog = True, use_color_hist = True, use_mini = True, 
 ```
 
 **Normalizing**
+
 We now have feature vectors which we created by combining 3 separate features. Rather than using these directly, it's always good to normailize. To do that, I utilizer the sklearn.preprocessing StandardScaler module.
 
 ```python
@@ -114,7 +115,8 @@ scaled_X = X_scaler.transform(X)
 ```
 
 **Randomizing and splitting**
-I used the sklearn.model\_select train\_test\_split function to split randomize and split the data into training and testing sets. I dedicated 20% of all observations to testing.
+
+I used the sklearn.model\_select train\_test\_split function to split randomize the data into training and testing sets. I dedicated 20% of all observations to testing.
 
 ```python
 X_train, X_test, y_train, y_test = train_test_split(scaled_X, y, test_size=test_fraction, random_state=42)
@@ -333,6 +335,14 @@ def process_frame(frame, model_type = 'svm'):
 ```
 
 ### Video pipeline
+The `pipeline.py` file is located in the src folder. The `process_video(input_path, output_path)` defined here calls the `process_frame()` function in the predict_model.py file and executes the function on every frame of the video. 
+
 
 ### Discussion
+The pipeline generally works well After trying various techniques to remove false positives, the multi-frame heatmap technique with the right parameters seemed to be the most helpful. 
+
+In the future, improvements I'd like to make are: 
+* Generalizing the pipeline to also detect humans and traffic lights.
+* Running a deeper conv. net with more data. This is only possible with access to better machines.
+* Generating new data by rotating existing data and doing transforms.
 
