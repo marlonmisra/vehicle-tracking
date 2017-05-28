@@ -69,7 +69,7 @@ def train_neural():
 	model.add(Dense(64))
 	model.add(Dropout(rate=dropout_prob))
 	model.add(Dense(32))
-	model.add(Dense(2, activation=activation_function))
+	model.add(Dense(2, activation=softmax))
 	model.summary()
 	model.compile(loss=loss_function, optimizer='adam', metrics=['accuracy'])
 	history = model.fit(X_train, y_train_cat, batch_size=neural_batches, epochs = neural_epochs, verbose = verbose_level, validation_data=(X_test, y_test_cat))

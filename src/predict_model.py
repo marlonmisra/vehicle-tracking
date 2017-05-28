@@ -7,13 +7,22 @@ from keras.models import load_model
 
 #PARAMS
 model_choice = 'svm' #svm, neural, convolutional
-heatmap_threshold = 25 #adjust to 5 for video, 0 for image
+heatmap_threshold = 0 #adjust down for image
+deque_len = 7
+window_overlap = (0.75,0.75)
 smallest_window_size = (48, 48)
 small_window_size = (64, 64)
 medium_window_size = (96, 96)
 large_window_size = (128, 128)
-window_overlap = (0.75,0.75)
-deque_len = 7
+smallest_x_start_stop = [500, None]
+small_x_start_stop = [0, None]
+medium_x_start_stop = [0, None]
+large_x_start_stop = [0, None]
+smallest_y_start_stop = [320, 500]
+small_y_start_stop = [350, 550]
+medium_y_start_stop = [400, 600]
+large_y_start_stop = [450, 700]
+
 
 #GLOBAL
 heatmaps = deque(maxlen=deque_len)
@@ -52,10 +61,10 @@ def process_frame(frame, model_type = 'svm'):
 	frame = frame.astype(np.float32)
 	frame /= 255.0
 	
-	smallest_windows = slide_window(frame, x_start_stop=[500, None], y_start_stop=[320, 500], xy_window=smallest_window_size, xy_overlap=window_overlap)
-	small_windows = slide_window(frame, x_start_stop=[0, None], y_start_stop=[350, 550], xy_window=small_window_size, xy_overlap=window_overlap)
-	medium_windows = slide_window(frame, x_start_stop=[0, None], y_start_stop=[400, 600], xy_window=medium_window_size, xy_overlap=window_overlap)
-	large_windows = slide_window(frame, x_start_stop=[0, None], y_start_stop=[450, 700], xy_window=large_window_size, xy_overlap=window_overlap)
+	smallest_windows = slide_window(frame, x_start_stop=smallest_x_start_stop, y_start_stop=smallest_y_start_stop, xy_window=smallest_window_size, xy_overlap=window_overlap)
+	small_windows = slide_window(frame, x_start_stop=small_x_start_stop, y_start_stop=small_y_start_stop, xy_window=small_window_size, xy_overlap=window_overlap)
+	medium_windows = slide_window(frame, x_start_stop=medium_x_start_stop, y_start_stop=medium_y_start_stop, xy_window=medium_window_size, xy_overlap=window_overlap)
+	large_windows = slide_window(frame, x_start_stop=large_x_start_stop, y_start_stop=large_y_start_stop, xy_window=large_window_size, xy_overlap=window_overlap)
 
 	window_types = [smallest_windows, small_windows, medium_windows, large_windows]
 	true_windows = []
@@ -88,12 +97,12 @@ def process_frame(frame, model_type = 'svm'):
 	else:
 		image_final = np.copy(frame)
 	print('length', len(heatmaps))
-	return image_final * 255 #for video
+	return image_final #* 255 for video
 
-#test_images = read_images()
-#a = process_frame(test_images[0], model_type = model_choice)
-#plt.imshow(a)
-#plt.show()
+test_images = read_images()
+a = process_frame(test_images[0], model_type = model_choice)
+plt.imshow(a)
+plt.show()
 
 
 

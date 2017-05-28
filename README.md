@@ -105,6 +105,22 @@ def get_features(image, use_hog = True, use_color_hist = True, use_mini = True, 
     return X
 ```
 
+**Normalizing**
+We now have feature vectors which we created by combining 3 separate features. Rather than using these directly, it's always good to normailize. To do that, I utilizer the sklearn.preprocessing StandardScaler module.
+
+```python
+X_scaler = StandardScaler().fit(X)
+scaled_X = X_scaler.transform(X) 
+```
+
+**Randomizing and splitting**
+I used the sklearn.model\_select train\_test\_split function to split randomize and split the data into training and testing sets. I dedicated 20% of all observations to testing.
+
+```python
+X_train, X_test, y_train, y_test = train_test_split(scaled_X, y, test_size=test_fraction, random_state=42)
+```
+
+
 ### Classifiers and training
 
 **Approach 1 - Support Vector Machine with derived features**
@@ -158,7 +174,6 @@ def train_neural():
 ```
 
 
-
 **Approach 3 - Convolutional neural network with raw features**
 
 For this last approach I decided to use raw features rather than the derived features. I did this because the whole point of a convolutional layer is to be able to handle and make sense of 3 dimensional images inputs and derive better features for successive layers. Immidiately after the convolutional layer, I also made use of a MaxPooling2D layer to squeeze the spatial dimensions and reduce commplexity. 
@@ -197,45 +212,127 @@ def train_convolutional_neural():
 ```
 
 
-
-
-
-
------------
-
-### Histogram of gradients
-One of the features that I used was a histogram of gradients or HOG. The technique counts occurrences of gradient orientation in localized portions of an image. The image I used as input was a grayscale image - this is sufficient because grayscale images show edges well. The function is defined in functions.py and it is called with parameters in process_data.py. I came up with the following parameters after starting with the provided ones and visually comparing results of various parm combinations. 
-* hog_orient = 9
-* hog_pix_per_cell = 8
-* hog_cell_per_block = 2
-
-### Processing
-After consolidating my data, I shuffled it using the sklearn `shuffle()` function. Then I normalized the data using the sklearn `StandardScaler` function. Finally, I split the data into training/testing sets using the sklearn `train_test_split` function.
-
-
 ### Window search and model tuning
-To do the window search, I made use of 4 different window sizes (48 x 48, 64 x 64, 96 x 96, 128 x 128). This was necessary because cars near the bottom of the image will appear much larger than the ones in the back. Because of this fact, I also restricted the search to the y values where it made sense to look. For example, I didn't use the largest 128*128 filter near the top of the image where cars, if they appear, would be much smaller. I also overall restricted the search area to exclude the top part of the image that is mostly consumed by the sky. For every window position, I got the image at at that area and ran the SVM model. For window for which a match was found, I added the window parameters to a list called true_windows. 
 
-Once I had a list of true_windows I made the use of the heat approach to try and find duplicates. Specifically, I created an empty copy of the input image and added 1 to each pixel where a window found a match. Since I used 4 windows the highest value a pixel could get was 4. I then made of a threshold function that set all pixels to 0 where the threshold wasn't found. I found the ideal threshold to be 3 after some testing. Finally, I made use of the labels approach to place boxes around heat zones.
+**Introduction**
 
-### Video 
-The output video is called video_annotated.mp4. An example output image is below. 
-![alt text][image1]
+Now that the classifiers are saved, the next step is to come up with a technique to apply them. Recall that model training was done on 64*64 images which were labeled car or no car. However, the images that the pipeline runs on are coming off of the front-facing camera. This means the image is much larger and contains many more things (the sky, parallel lanes, other cars, etc.). 
 
-
-### Further discussion 
-Thigns I could have improved on:
-* Utilized a large dataset that Udacity opensourced.
-* Tried to use different models, like neural networks or decision trees.
-* Create a class to keep track of frames and do averaging over frames that happen in sequence.
+The approach we're going to take is to apply a window search, where we iteratively shift a window over sections of the image and do a search at each stopping point. The function that finds windows on an image, given a window size, starting coordinates, and overlap parameters, is as follows.
 
 
+```python
+def slide_window(image, x_start_stop=[None, None], y_start_stop=[None, None], y_window=(64, 64), xy_overlap=(0.5, 0.5)):
+    if x_start_stop[0] == None:
+        x_start_stop[0] = 0
+    if x_start_stop[1] == None:
+        x_start_stop[1] = image.shape[1]
+    if y_start_stop[0] == None:
+        y_start_stop[0] = 0
+    if y_start_stop[1] == None:
+        y_start_stop[1] = image.shape[0]
+    #span of regions 
+    xspan = x_start_stop[1] - x_start_stop[0]
+    yspan = y_start_stop[1] - y_start_stop[0]
+    #number of pixels
+    nx_pix_per_step = np.int(xy_window[0]*(1 - xy_overlap[0]))
+    ny_pix_per_step = np.int(xy_window[1]*(1 - xy_overlap[1]))
+    #number of windows
+    nx_buffer = np.int(xy_window[0]*(xy_overlap[0]))
+    ny_buffer = np.int(xy_window[1]*(xy_overlap[1]))
+    nx_windows = np.int((xspan-nx_buffer)/nx_pix_per_step) 
+    ny_windows = np.int((yspan-ny_buffer)/ny_pix_per_step) 
+
+    window_list = []
+    for ys in range(ny_windows):
+        for xs in range(nx_windows):
+            #window positions
+            startx = xs*nx_pix_per_step + x_start_stop[0]
+            endx = startx + xy_window[0]
+            starty = ys*ny_pix_per_step + y_start_stop[0]
+            endy = starty + xy_window[1]
+            window_list.append(((startx, starty), (endx, endy)))
+    return window_list
+```
+
+**Window parameters**
+
+This above function works on window sizes of arbitrary size and this is important. When the search happens near the bottom of the image the windows must be large (images close to the car appear bigger). In comparison, images that are further away appear in much smaller windows. Because of that, we defined 4 different window sizes. 
+
+We can also restrict the area to search in. For example, we don't care if any cars are detected at the very top of the image.
+
+Lastly, we have to define a window_overlap parameter which sets the amount a window is shifted in each iteration. 
+
+```python
+smallest_window_size = (48, 48)
+small_window_size = (64, 64)
+medium_window_size = (96, 96)
+large_window_size = (128, 128)
+smallest_x_start_stop = [500, None]
+small_x_start_stop = [0, None]
+medium_x_start_stop = [0, None]
+large_x_start_stop = [0, None]
+smallest_y_start_stop = [320, 500]
+small_y_start_stop = [350, 550]
+medium_y_start_stop = [400, 600]
+large_y_start_stop = [450, 700]
+window_overlap = (0.75,0.75)
+```
+
+**Heatmaps**
+
+The final step to make the window technique work well and reduce false positives is to make use of heatmaps. Heatmaps keep track of positive window detections in successive frames. Then, the heatmap is thresholded such that areas with low heat do not get annotated. This works well because false detections usually don't occur on the same spot consistently over many frames. The parameters that worked best are the following. The value for deque_len signifies that only the last 7 frames are tracked. 
+
+heatmap_threshold = 25
+heatmaps = deque(maxlen=deque_len)
+deque_len = 7
 
 
+```python
+def process_frame(frame, model_type = 'svm'):
+	frame = frame.astype(np.float32)
+	frame /= 255.0
+	
+	smallest_windows = slide_window(frame, x_start_stop=smallest_x_start_stop, y_start_stop=smallest_y_start_stop, xy_window=smallest_window_size, xy_overlap=window_overlap)
+	small_windows = slide_window(frame, x_start_stop=small_x_start_stop, y_start_stop=small_y_start_stop, xy_window=small_window_size, xy_overlap=window_overlap)
+	medium_windows = slide_window(frame, x_start_stop=medium_x_start_stop, y_start_stop=medium_y_start_stop, xy_window=medium_window_size, xy_overlap=window_overlap)
+	large_windows = slide_window(frame, x_start_stop=large_x_start_stop, y_start_stop=large_y_start_stop, xy_window=large_window_size, xy_overlap=window_overlap)
 
+	window_types = [smallest_windows, small_windows, medium_windows, large_windows]
+	true_windows = []
+	for window_set in window_types:
+		for window in window_set:
+			window_image = cv2.resize(frame[window[0][1]:window[1][1], window[0][0]:window[1][0]], (64, 64))
+			if model_type == 'svm':
+				if svm_procedure(window_image):
+					true_windows.append(window)
+			if model_type == 'neural':
+				if neural_procedure(window_image):
+					true_windows.append(window)
+			if model_type == 'convolutional':
+				if convolutional_procedure(window_image):
+					true_windows.append(window)
+	
+	image_windows = draw_boxes(np.copy(frame), true_windows)
+	print("True windows: ", len(true_windows))
 
+	heatmap = np.zeros_like(frame[:,:,0]).astype(np.float)
+	if len(true_windows)>0:
+		heatmap = add_heat(heatmap, true_windows)
+		
+		heatmaps.append(heatmap)
+		if len(heatmaps)==deque_len:
+			heatmap = sum(heatmaps)
+		heatmap_2 = apply_threshold(heatmap, heatmap_threshold)
+		labels = label(heatmap_2) #tuple with 1st element color-coded heatmap and second elment int with number of cars
+		image_final = draw_labeled_boxes(np.copy(frame), labels)
+	else:
+		image_final = np.copy(frame)
+	print('length', len(heatmaps))
+	return image_final * 255
+```
 
+### Video pipeline
 
+### Discussion
 
-
-# vehicle-tracking
