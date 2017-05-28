@@ -33,14 +33,59 @@ Preparing data for a convolutional network is straighforward because you're not 
 ### Data processing for other classifiers
 
 **Background**
-We also want to try other models like Support Vector Machines. For classifiers like that it's important to first do feature engineering. Otherwise the data is too complex and the model will take too long to train. In addition, many feature extraction techniques have been explored by others and ar proven to work well. 
+We also want to try other models like Support Vector Machines. For classifiers like that it's important to first do feature engineering. Otherwise the data is too complex and the model will take too long to train. In addition, many feature extraction techniques have been explored by others and are proven to work well for this type of task. 
 
 **Histogram of oriented gradients (HOG)**
+HOG's are known to be good predictors of object presence. They work by first calculating the gradient magnitude and direction at each pixel. Then, the individual pixel values are grouped into cells of size x*x. Then, for each cell a histogram of gradient directions is computed (where magnitude is also considered). When you do this for all cells and plot a result you begin to see a representation of the original structure, and that is what a HOG is. The reason this feature is so useful is because it's robust to changes in color and small variations in shape. To implement, I used the `hog()` function from skimage.feature. The output is a vector which I later combine to the other features. The following parameters worked best for me.  
 
+```python
+hog_orientations = 15
+hog_pixels_per_cell = 8
+```
 
 **Color histogram**
+The color histogram is similar to the HOG. I decided to include it so that the model could make use of color information. The function to extract the color features was defined as follows.
 
-**Flattened minimized input**
+```python
+def color_hist(image, bins = 16, bins_range = (0,256), vis = False):
+	red = np.histogram(image[:,:,0], bins = bins, range = bins_range)
+	green = np.histogram(image[:,:,1], bins = bins, range = bins_range)
+	blue = np.histogram(image[:,:,2], bins = bins, range = bins_range)
+	color_hist_feature = np.concatenate((red[0], green[0], blue[0]))
+	return color_hist_feature
+```
+
+**Colorspace-transformed flattened reduced image**
+The purpose of this feature is to capture as much as possible from the raw image, while still significantly reducing complexity. The approach to derive this feature is to (1) convert the RGB image to a more useful colorspace, (2) resize the image to be smaller and (3) flatten the image. The two functions below were applied in sequence with the following parameters. 
+
+```python
+color_space = 'YCrCb'
+new_size = (32, 32)
+```
+
+def change_colorspace(image, color_space):
+    if color_space == 'HSV':
+        new_colorspace = cv2.cvtColor(image, cv2.COLOR_RGB2HSV)
+    elif color_space == 'HLS':
+        new_colorspace = cv2.cvtColor(image, cv2.COLOR_RGB2HLS)        
+    elif color_space == 'LUV':
+        new_colorspace = cv2.cvtColor(image, cv2.COLOR_RGB2LUV)
+    elif color_space == 'YUV':
+        new_colorspace = cv2.cvtColor(image, cv2.COLOR_RGB2YUV)
+    elif color_space == 'YCrCb':
+        new_colorspace = cv2.cvtColor(image, cv2.COLOR_RGB2YCrCb)
+    else:
+    	print("Wrong colorspace selected")
+
+    return new_colorspace 
+
+def reduce_and_flatten(image, new_size = (32,32)):
+	reduced_size_feature = cv2.resize(image, new_size).ravel()
+	return reduced_size_feature
+
+
+**Combining the features into a single feature**
+The previous 3 feature extraction techniques.
 
 
 
