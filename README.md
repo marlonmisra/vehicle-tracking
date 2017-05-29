@@ -14,7 +14,7 @@ The steps I'll describe are:
 [//]: # (Image References)
 
 [image1]: ./readme_assets/car_images.png "car images"
-[image2]: ./readme_assets/noncar_images.png "noncar images"
+[image2]: ./readme_assets/notcar_images.png "noncar images"
 [image3]: ./readme_assets/vehicle_images.png "vehicle images"
 [image4]: ./readme_assets/gray_images.png "gray images"
 [image5]: ./readme_assets/hog_images.png "hog images"
