@@ -1,7 +1,7 @@
 ## Vehicle tracking project
 
 ### Introduction 
-After building two lane detection pipelines ([one simple](https://github.com/marlonmisra/lane-finding), [one advanced](https://github.com/marlonmisra/advanced-lane-finding)), this project is about another fundamental problem in self driving cars - the detection other cars. Again, we're using a single front facing car camera for our input video feed. The output is an annotated version of the input feed that includes rectangles around identified cars. For this project, we're strictly focused on the detection of other cars, but the model can easily be trained on trucks, humans, traffic signs, or other objects. 
+After building two lane detection pipelines ([simple](https://github.com/marlonmisra/lane-finding), [advanced](https://github.com/marlonmisra/advanced-lane-finding)), this project is about another fundamental problem in self driving cars - the detection other cars. Again, we're using a single front facing car camera for our input video feed. The output is an annotated version of the input feed that includes rectangles around identified cars. For this project, we're strictly focused on the detection of other cars, but the model can easily be trained on trucks, humans, traffic signs, or other objects. 
 
 The steps I'll describe are: 
 * Exploring different feature engineering techniques, including using a histogram of oriented gradients (HOG), a histogram of color, and reduced flattened version of the original image. 
@@ -19,6 +19,20 @@ The steps I'll describe are:
 [image4]: ./readme_assets/vehicle_images.png "vehicle images"
 [image5]: ./readme_assets/gray_imgs.png "gray images"
 [image6]: ./readme_assets/hog_imgs.png "hog images"
+
+[image7]: ./readme_assets/full_images.png "full images"
+[image8]: ./readme_assets/positive_detections.png "positive detections"
+[image9]: ./readme_assets/positive_detections_labels.png "positive detections label"
+[image10]: ./readme_assets/heatmaps.png "heatmaps"
+[image11]: ./readme_assets/heatmaps_labels.png "heatmaps labels"
+[image12]: ./readme_assets/thresholded_heatmaps.png "thresholded heatmaps"
+[image13]: ./readme_assets/thresholded_heatmaps_labels.png "thresholded heatmaps labels"
+[image14]: ./readme_assets/labels.png "labels"
+[image15]: ./readme_assets/labels_labels.png "labels labels"
+[image16]: ./readme_assets/final_images.png "final images"
+[image16]: ./readme_assets/final_images_labels.png "final images labels"
+
+
 
 
 
@@ -129,7 +143,7 @@ def get_features(image, use_hog = True, use_color_hist = True, use_mini = True, 
 
 **Normalizing, randomizing, and splitting**
 
-We now have feature vectors which we created by combining 3 separate features. Rather than using these directly, since they each have different relative magnitudes, I normalized them. I utilized the sklearn.preprocessing StandardScaler module for that. After that, I used the sklearn.model\_select train\_test\_split function to randomize and split the data into training and testing sets. I dedicated 20% of all observations to testing.
+We now have feature vectors which we created by combining 3 separate features. Rather than using these directly, since they each have different relative magnitudes, I normalized them. I utilized the sklearn.preprocessing `StandardScaler` module for that. After that, I used the sklearn.model\_select `train\_test\_split()` function to randomize and split the data into training and testing sets. I dedicated 20% of all observations to testing.
 
 ```python
 X_scaler = StandardScaler().fit(X)
@@ -194,7 +208,7 @@ def train_neural():
 
 **Approach 3 - Convolutional neural network with raw features**
 
-For the last approach I used raw features instead of the derived ones. I did this because convolutional layers do feature extraction on images really well and I wanted to see how well raw features worked compared to the derived ones. After the convolutioanl layer, I used a MaxPooling2D layer to squeeze the spatial dimensions and reduce complexity, so that training runs faster. 
+For the last approach I used raw features instead of the derived ones. I did this because convolutional layers do feature extraction on images really well and I wanted to see how well raw features worked compared to the derived ones. After the convolutioanl layers, I used a MaxPooling2D layer to squeeze the spatial dimensions and reduce complexity, so that training runs faster. 
 
 With the setup below I was able to achieve a testing accuracy of 99.08%. The convolutional neural net took by far the longest to train at at 960 seconds. It also took more epochs (25) for accuracies to get into the high 90s range, whereas that happened much faster for standard covnets. 
 
@@ -212,16 +226,14 @@ def train_convolutional_neural():
 	y_test_cat = np_utils.to_categorical(y_test_convolutional, 2)
 	model = Sequential()
 	model.add(Conv2D(filters=16, kernel_size=(3, 3), padding='valid', input_shape=(64, 64, 3)))
+	model.add(Conv2D(filters=16, kernel_size=(3, 3), padding='valid'))
 	model.add(MaxPooling2D(pool_size = (3,3)))
-	model.add(Flatten())
-	model.add(Dense(128,activation=activation_function))
 	model.add(Dropout(rate=dropout_prob))
+	model.add(Flatten())
 	model.add(Dense(64,activation=activation_function))
 	model.add(Dropout(rate=dropout_prob))
 	model.add(Dense(32,activation=activation_function))
-	model.add(Dropout(rate=dropout_prob))
-	model.add(Dense(16,activation=activation_function))
-	model.add(Dropout(rate=dropout_prob))
+	model.add(Dense(32,activation=activation_function))
 	model.add(Dense(2,activation='softmax'))
 	model.summary()
 	model.compile(loss=loss_function, optimizer='adam', metrics=['accuracy'])
@@ -277,7 +289,12 @@ def slide_window(image, x_start_stop=[None, None], y_start_stop=[None, None], y_
 
 This above function works on window sizes of arbitrary dimensions. This is important because when the search happens near the bottom of the image (where other cars are close), the windows have to be larger because cars closer to your car appear to be larger. Conversely, cars that are higher in the image (further away in real life) require smaller windows. Because of that, we defined 4 different window sizes. 
 
-We can also restrict the area to search in. For example, we don't care if any cars are detected at the very top of the image.Lastly, we have to define a window_overlap parameter which sets the amount a window is shifted in each iteration. 
+There are other things we can specify as well. First, we can restrict the area to search in. For example, we don't care if any cars are detected at the very top of the image or the far sides. We can also specifiy how much the windows mover in each iteration by setting the window_overlap parameter. Images of all windows that found matches are below.
+
+![alt text][image7]
+
+![alt text][image8]
+
 
 ```python
 smallest_window_size = (48, 48)
@@ -304,6 +321,12 @@ The final step to make the window technique work well and reduce false positives
 heatmap_threshold = 25
 heatmaps = deque(maxlen=deque_len)
 deque_len = 7
+
+![alt text][image9]
+
+![alt text][image10]
+
+![alt text][image12]
 
 
 ```python

@@ -91,14 +91,14 @@ def process_frame(frame, model_type = 'svm', heatmap_thresh = heatmap_threshold,
 		heatmaps.append(heatmap)
 		if len(heatmaps)==deque_len:
 			heatmap = sum(heatmaps)
-		heatmap_2 = apply_threshold(heatmap, heatmap_thresh)
+		heatmap_2 = apply_threshold(np.copy(heatmap), heatmap_thresh)
 		labels = label(heatmap_2) #tuple with 1st element color-coded heatmap and second elment int with number of cars
 		image_final = draw_labeled_boxes(np.copy(frame), labels)
 	else:
 		image_final = np.copy(frame)
 	print('length', len(heatmaps))
 	if all_outputs == True:
-		return image_windows, heatmap, heatmap_2, image_final
+		return image_windows, heatmap, heatmap_2, labels[0], image_final
 	else:
 		return image_final #* 255 for video
 

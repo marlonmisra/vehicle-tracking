@@ -21,15 +21,14 @@ vehicle_images = [plt.imread(vehicle_name) for vehicle_name in vehicle_names]
 gray_images = [make_gray(vehicle_image) for vehicle_image in vehicle_images]
 hog_images = [hist_of_gradients(gray_image, orient = 15, pix_per_cell = 8, cell_per_block = 2, vis = True)[1] for gray_image in gray_images]
 
-full_image = read_images()[0]
-positive_detections = process_frame(full_image, model_type = 'svm', heatmap_thresh = -1, all_outputs = True)[0]
-heatmaps = process_frame(full_image, model_type = 'svm', heatmap_thresh = -1, all_outputs = True)[1]
-thresholded_heatmaps = process_frame(full_image, model_type = 'svm', heatmap_thresh = -1, all_outputs = True)[2]
-final_images = process_frame(full_image, model_type = 'svm', heatmap_thresh = -1, all_outputs = True)[3]
+full_images_labels = ["Two cars", "One car"]
+full_images = read_images()[0:2]
+#positive_detections = [process_frame(full_image, model_type = 'svm', heatmap_thresh = 3, all_outputs = True)[0] for full_image in full_images]
+#heatmaps = [process_frame(full_image, model_type = 'svm', heatmap_thresh = 3, all_outputs = True)[1] for full_image in full_images]
+#thresholded_heatmaps = [process_frame(full_image, model_type = 'svm', heatmap_thresh = 3, all_outputs = True)[2] for full_image in full_images]
+#labels = [process_frame(full_image, model_type = 'svm', heatmap_thresh = 3, all_outputs = True)[3] for full_image in full_images]
+#final_images = [process_frame(full_image, model_type = 'svm', heatmap_thresh = 3, all_outputs = True)[4] for full_image in full_images]
 
-plt.imshow(positive_detections)
-plt.imshow(heatmaps)
-plt.show()
 
 
 
@@ -53,7 +52,7 @@ def plot_noncar_images():
 	fig.tight_layout()
 
 	for ax, image, label in zip(axes, nonvehicle_images, nonvehicle_labels):
-		ax.imshow(image)
+		ax.imshow(image, cmap='gray')
 		ax.set_title(label)
 		ax.axis('off')
 
@@ -61,22 +60,26 @@ def plot_noncar_images():
 	plt.savefig('../readme_assets/image.png')
 
 
-def plot_all(images, labels=True):
+def plot_all(images, labels, include_labels=True):
 	fig, axes = plt.subplots(nrows=1, ncols=2, figsize = (10,3))
 	axes = axes.ravel()
 	fig.tight_layout()
 
-	for ax, image, label in zip(axes, images, vehicle_labels):
-		ax.imshow(image, cmap='gray')
-		if labels == True:
+	for ax, image, label in zip(axes, images, labels):
+		ax.imshow(image)
+		if include_labels == True:
 			ax.set_title(label)
 		ax.axis('off')
 	#plt.show()
 	plt.savefig('../readme_assets/image.png')
+
+
 	
 #plot_car_images()
 #plot_noncar_images()
-#plot_all(hog_images, labels=False)
+#plot_all(images = hog_images, labels=vehicle_labels, include_labels = False)
+#plot_all(images = final_images, labels=full_images_labels, include_labels = True)
+
 
 
 
