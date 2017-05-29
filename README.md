@@ -8,7 +8,6 @@ The steps I'll describe are:
 * Comparing different classifiers, including a Support Vector Machine (SVM), a simple neural net, and a convolutional neural net.
 * Implementing a sliding-window technique where areas of the input image are iteratively searched for the presence of a car car.
 * Running the pipeline on a video stream and making use of prior frames to reduce false positives. 
-* Estimating bounding boxes for detected vehicles
 
 
 [//]: # (Image References)
@@ -67,7 +66,7 @@ For traditional classifiers like Support Vector Machines, it's important to firs
 
 HOG's are known to be good predictors of object presence. They work by first calculating the gradient magnitude and direction at each pixel. Then, the individual pixel values are grouped into cells of size x*x. Then, for each cell a histogram of gradient directions is computed (where magnitude is also considered). When you do this for all cells and plot a result you begin to see a representation of the original structure, and that is what a HOG is. The reason this feature is so useful is because it's robust to changes in color and small variations in shape. To implement, I used the `hog()` function from skimage.feature. The parameters I used are below.  
 
-I've also plotted the original images, grey images (you convert to grayscale before applying the hog function), and the hog images. Note that the last hog image is only a visualization - the feature is a flattened out vector of that representation.
+I've also plotted the original images, grey images (you convert to grayscale before applying the hog function), and the hog images. Note that the hog images are only visualizations - the feature is a flattened out vector of that representation.
 
 ```python
 hog_orientations = 15
@@ -80,7 +79,7 @@ hog_pixels_per_cell = 8
 
 **Color histogram**
 
-The color histogram is the second feature we're going to make use of. It complements the HOG well because rather than focusing on edge distributin, it's focused on color distribution. The function to extract the color features was defined as follows. I used 16 bins of colors. 
+The color histogram is the second feature we're going to make use of. It complements the HOG well because rather than focusing on edge distribution, it's focused on color distribution. The function to extract the color features was defined as follows. I used 16 bins of colors. 
 
 ```python
 def color_hist(image, bins = 16, bins_range = (0,256), vis = False):
@@ -93,7 +92,7 @@ def color_hist(image, bins = 16, bins_range = (0,256), vis = False):
 
 **Colorspace-transformed reduced image**
 
-The purpose of this feature is to capture as much information as possible from the original raw image, while significantly reducing feature size. The approach I used to derive this feature is to (1) convert the RGB image to a colorspace that highlighted edgres more, (2) resize the image to be smaller and (3) flatten the image. The two functions below were applied in sequence with the following parameters. 
+The purpose of this feature is to capture as much information as possible from the original raw image, while significantly reducing feature size. The approach I used to derive this feature is to (1) convert the RGB image to a colorspace that highlighted edges, (2) resize the image to be smaller and (3) flatten the image. The two functions below were applied in sequence with the following parameters. 
 
 ```python
 color_space = 'YCrCb'
@@ -124,7 +123,7 @@ def reduce_and_flatten(image, new_size = (32,32)):
 
 **Combining the features into a single feature**
 
-The previous 3 feature extraction techniques each returned a vector. To combine them, I simply appended them to each other. The function I defined to this is below. I defined it in a way that lets me exclude any one of the three features, so that I can test if that improves accuracy. 
+The previous 3 feature extraction techniques each returned a vector. To combine them, I simply appended them to one another. I defined the combining function in a way that lets me exclude any one of the three features, so that I can test if that improves accuracy. 
 
 ```python
 def get_features(image, use_hog = True, use_color_hist = True, use_mini = True, mini_color_space = 'HSV', mini_size = (32,32), hog_orient = 9, hog_pix_per_cell = 8, hog_cell_per_block = 2):
@@ -143,7 +142,7 @@ def get_features(image, use_hog = True, use_color_hist = True, use_mini = True, 
 
 **Normalizing, randomizing, and splitting**
 
-We now have feature vectors which we created by combining 3 separate features. Rather than using these directly, since they each have different relative magnitudes, I normalized them. I utilized the sklearn.preprocessing `StandardScaler` module for that. After that, I used the sklearn.model\_select `train\_test\_split()` function to randomize and split the data into training and testing sets. I dedicated 20% of all observations to testing.
+We now have combined feature vector which we created by combining 3 separate features. Rather than using these directly, since they each have different relative magnitudes, I normalized them using the sklearn.preprocessing `StandardScaler` module. After that, I used the sklearn.model_select `train_test_split()` function to randomize and split the data into training and testing sets. I dedicated 20% of all observations to testing.
 
 ```python
 X_scaler = StandardScaler().fit(X)
@@ -208,7 +207,7 @@ def train_neural():
 
 **Approach 3 - Convolutional neural network with raw features**
 
-For the last approach I used raw features instead of the derived ones. I did this because convolutional layers do feature extraction on images really well and I wanted to see how well raw features worked compared to the derived ones. After the convolutioanl layers, I used a MaxPooling2D layer to squeeze the spatial dimensions and reduce complexity, so that training runs faster. 
+For the last approach I used raw features instead of the derived ones. I did this because convolutional layers do feature extraction on images really well and I wanted to see how well raw features worked compared to the derived ones. After the convolutional layers, I used a MaxPooling2D layer to squeeze the spatial dimensions and reduce complexity, so that training runs faster. 
 
 With the setup below I was able to achieve a testing accuracy of 99.08%. The convolutional neural net took by far the longest to train at at 960 seconds. It also took more epochs (25) for accuracies to get into the high 90s range, whereas that happened much faster for standard covnets. 
 
@@ -246,7 +245,7 @@ def train_convolutional_neural():
 
 **Introduction**
 
-Now that the classifiers are saved, the next step is to come up with a technique to apply them. Recall that model training was done on 64*64 images which were labeled car or no car. However, the images that the pipeline runs on are coming off of the front-facing camera. This means the image is much larger and contains many more things (the sky, parallel lanes, other cars, etc.). 
+Now that the classifiers are saved, the next step is to come up with a technique to apply them. Recall that model training was done on 64*64 images which were labeled car or not car. However, the images that the pipeline runs on are coming off of the front-facing camera. This means the image is much larger and contains many more things (the sky, parallel lanes, other cars, etc.). 
 
 To deal with that, we're going to use a window search technique where we iteratively shift a window over sections of the image and do a search for a car at that location. The function that performs the search is below. 
 
@@ -289,12 +288,7 @@ def slide_window(image, x_start_stop=[None, None], y_start_stop=[None, None], y_
 
 This above function works on window sizes of arbitrary dimensions. This is important because when the search happens near the bottom of the image (where other cars are close), the windows have to be larger because cars closer to your car appear to be larger. Conversely, cars that are higher in the image (further away in real life) require smaller windows. Because of that, we defined 4 different window sizes. 
 
-There are other things we can specify as well. First, we can restrict the area to search in. For example, we don't care if any cars are detected at the very top of the image or the far sides. We can also specifiy how much the windows mover in each iteration by setting the window_overlap parameter. Images of all windows that found matches are below.
-
-![alt text][image7]
-
-![alt text][image8]
-
+There are other things we can specify as well. First, we can restrict the area to search in. For example, we don't care if any cars are detected at the very top of the image or the far sides. We can also specify how much the windows shift in each iteration by setting the `window_overlap` parameter. Images of all windows that found matches are below.
 
 ```python
 smallest_window_size = (48, 48)
@@ -314,13 +308,19 @@ large_y_start_stop = [450, 700]
 window_overlap = (0.75,0.75)
 ```
 
+
+![alt text][image7]
+
+![alt text][image8]
+
+
 **Heatmaps**
 
 Now that we have "true windows" or areas of the image where our classifier detected cars, we want to remove false positives. To do that, we're going to make use of heatmaps.
 
-Starting with a copy of the original image where each pixel is set to 0, we use the `add_heat()` function and add 1 to any any pixel that is covered by a true window. Since there are multiple size windows and overlaps can occur, on the heatmap (2nd row of images), some areas are hotter than others. Next, we apply a threshold to this heatmap so that area where there few windows overlapped are exluded. Mathematically, we set those values back to 0. That's why on thresholded heatmap (3rd row of images), the less hot areas disappear. Then, as the last step, we make use of the scipy.ndimage.measurements `label()` function to turn our thresholded heatmap into discrete objects. That is what you can see in the 4th row of images. 
+Starting with a copy of the original image where each pixel is set to 0, we use the `add_heat()` function and add 1 to any any pixel that is covered by a true window. Since there are multiple size windows and overlaps can occur, on the heatmap (2nd row of images), some areas are hotter than others. Next, we apply a threshold to this heatmap so that areas where few windows overlap are exluded. Mathematically, we set those values back to 0. That's why on thresholded heatmap (3rd row of images), there are fewer hot areas. Then, as the last step, we make use of the scipy.ndimage.measurements `label()` function to turn our thresholded heatmap into discrete areas. The output of that is represented in the 4th row of images. 
 
-In the actual video pipeline, I've increased the heatmap_threshold and made of a heatmaps deque. The purpose of this is to keep track of multiple frames and do smoothing. This works really well because false positive usually don't occur consistently over multiple frames. 
+In the actual video pipeline, I've increased the heatmap_threshold and also made of a heatmaps deque. The purpose of this is to keep track of multiple frames and do smoothing. This works really well because false positive usually don't occur consistently over multiple frames. 
 
 ```python
 heatmap_threshold = 2
@@ -335,6 +335,8 @@ deque_len = 7
 ![alt text][image12]
 
 ![alt text][image14]
+
+![alt text][image15]
 
 
 ```python
