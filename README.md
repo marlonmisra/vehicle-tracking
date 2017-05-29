@@ -55,9 +55,7 @@ hog_pixels_per_cell = 8
 ```
 
 ![alt text][image3]
-
 ![alt text][image4]
-
 ![alt text][image5]
 
 **Color histogram**
