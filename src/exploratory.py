@@ -56,14 +56,15 @@ def plot_all(images, labels=True):
 
 	for ax, image, label in zip(axes, images, vehicle_labels):
 		ax.imshow(image, cmap='gray')
-		ax.set_title(label)
+		if labels == True:
+			ax.set_title(label)
 		ax.axis('off')
 	#plt.show()
 	plt.savefig('../readme_assets/image.png')
 	
 #plot_car_images()
 #plot_noncar_images()
-plot_all(vehicle_images)
+plot_all(hog_images, labels=False)
 
 
 
