@@ -27,7 +27,7 @@ full_images = read_images()[0:2]
 #heatmaps = [process_frame(full_image, model_type = 'svm', heatmap_thresh = 3, all_outputs = True)[1] for full_image in full_images]
 #thresholded_heatmaps = [process_frame(full_image, model_type = 'svm', heatmap_thresh = 3, all_outputs = True)[2] for full_image in full_images]
 #labels = [process_frame(full_image, model_type = 'svm', heatmap_thresh = 3, all_outputs = True)[3] for full_image in full_images]
-#final_images = [process_frame(full_image, model_type = 'svm', heatmap_thresh = 3, all_outputs = True)[4] for full_image in full_images]
+final_images = [process_frame(full_image, model_type = 'svm', heatmap_thresh = 3, all_outputs = True)[4] for full_image in full_images]
 
 
 

@@ -31,6 +31,8 @@ The steps I'll describe are:
 [image16]: ./readme_assets/final_images.png "final images"
 [image17]: ./readme_assets/final_images_labels.png "final images labels"
 
+[image18]: ./readme_assets/video.gif "video"
+
 
 
 
@@ -384,13 +386,14 @@ def process_frame(frame, model_type = 'svm'):
 ```
 
 ### Video pipeline
-The `pipeline.py` file is located in the src folder. The `process_video(input_path, output_path)` defined here calls the `process_frame()` function in the predict_model.py file and executes the function on every frame of the video. 
+The pipeline.py file is located in the src folder. The `process_video(input_path, output_path)` function defined there calls the `process_frame()` function in the predict_model.py file and executes the processing function on every frame that is read in. 
+
+![alt text][image18]
 
 
 ### Discussion
-The pipeline generally works well After trying various techniques to remove false positives, the multi-frame heatmap technique with the right parameters seemed to be the most helpful. 
+After spending a lot of time tuning hyperparameters, the pipeline now works well on the test videos. Some ideas to further improve the pipeline are: 
 
-In the future, improvements I'd like to make are: 
-* Generalizing the pipeline to also detect humans and traffic lights.
-* Generating new data by rotating existing data and doing transforms.
-
+* Training the model on other objects like humans and traffic lights to see if the name model still performs well. 
+* Generating new data in the beginning by doing shift, rotations, and other transformations.
+* Treating the 4 types of car images (left, right, front, back) separately and doing a separate window search for each. 
