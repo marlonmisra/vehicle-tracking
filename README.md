@@ -316,17 +316,27 @@ window_overlap = (0.75,0.75)
 
 **Heatmaps**
 
+Now that we have "true windows" or areas of the image where our classifier detected cars, we want to remove false positives. To do that, we're going to make use of heatmaps.
+
+Starting with a copy of the original image where each value is set to 0, wee use the `add_heat()` function and add 1 to any any area that a window covers. Since there are multiple-size windows, overlaps can occur, and that's why in the heatmap (2nd row of images), some areas are hotter than others.
+
+Next, we apply a threshold to this heatmap so that area where th
+
 The final step to make the window technique work well and reduce false positives is to make use of heatmaps. Heatmaps keep track of positive window detections in successive frames. Then, the heatmap is thresholded such that areas with low heat do not get annotated. This works well because false detections usually don't occur on the same spot consistently over many frames. The parameters that worked best are the following. The value for deque_len signifies that only the last 7 frames are tracked. 
 
+```python
 heatmap_threshold = 25
 heatmaps = deque(maxlen=deque_len)
 deque_len = 7
+```
 
 ![alt text][image9]
 
 ![alt text][image10]
 
 ![alt text][image12]
+
+![alt text][image14]
 
 
 ```python
@@ -364,7 +374,7 @@ def process_frame(frame, model_type = 'svm'):
 		heatmaps.append(heatmap)
 		if len(heatmaps)==deque_len:
 			heatmap = sum(heatmaps)
-		heatmap_2 = apply_threshold(heatmap, heatmap_threshold)
+		heatmap_2 = apply_threshold(np.copy(heatmap), heatmap_threshold)
 		labels = label(heatmap_2) #tuple with 1st element color-coded heatmap and second elment int with number of cars
 		image_final = draw_labeled_boxes(np.copy(frame), labels)
 	else:
