@@ -394,6 +394,6 @@ The pipeline.py file is located in the src folder. The `process_video(input_path
 ### Discussion
 After spending a lot of time tuning hyperparameters, the pipeline now works well on the test videos. Some ideas to further improve the pipeline are: 
 
-* Training the model on other objects like humans and traffic lights to see if the name model still performs well. 
-* Generating new data in the beginning by doing shift, rotations, and other transformations.
+* Training the model on other objects like humans and traffic lights to see if the same model still performs well. 
+* Generating new data in the beginning by doing shifts, rotations, and other transformations.
 * Treating the 4 types of car images (left, right, front, back) separately and doing a separate window search for each. 
