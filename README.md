@@ -29,7 +29,7 @@ The steps I'll describe are:
 [image14]: ./readme_assets/labels.png "labels"
 [image15]: ./readme_assets/labels_labels.png "labels labels"
 [image16]: ./readme_assets/final_images.png "final images"
-[image16]: ./readme_assets/final_images_labels.png "final images labels"
+[image17]: ./readme_assets/final_images_labels.png "final images labels"
 
 
 
@@ -336,7 +336,7 @@ deque_len = 7
 
 ![alt text][image14]
 
-![alt text][image15]
+![alt text][image16]
 
 
 ```python
