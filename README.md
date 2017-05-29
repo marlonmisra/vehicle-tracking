@@ -15,7 +15,7 @@ The steps I'll describe are:
 
 [image1]: ./readme_assets/car_images.png "car images"
 [image2]: ./readme_assets/notcar_images.png "noncar images"
-[image2]: ./readme_assets/full_test_image.png "full image"
+[image3]: ./readme_assets/full_test_image.png "full image"
 [image4]: ./readme_assets/vehicle_images.png "vehicle images"
 [image5]: ./readme_assets/gray_imgs.png "gray images"
 [image6]: ./readme_assets/hog_imgs.png "hog images"
@@ -39,7 +39,7 @@ The raw data consists of 64x64 images which are labeled as either car or not car
 ![alt text][image2]
 
 
-Note that the above data what will be used for model training and testing. Our ultimate goal, however, is to detect cars on a full image like the one below. 
+Note that the above data what will be used for model training and testing. Our ultimate goal, however, is to detect cars on full images like the one below. 
 
 ![alt text][image3]
 
