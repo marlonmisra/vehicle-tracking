@@ -31,7 +31,7 @@ The project includes the following files:
 
 ### Data 
 
-Our raw data consists of 64x64 images which are labeled as either car or not car. Car images further break down into images from the left, from, middle, and far. In total there 10,885 samples, of which 1,917 (17.6%) are labeled as car, and the remainder (82.4%) are labeled as not car. We're going to start by extracting features from this data. Below are examples of car images and noncar images. 
+The raw data consists of 64x64 images which are labeled as either car or not car. Car images further break down into images from the left, right, middle, and far. In total there 10,885 samples, of which 1,917 (17.6%) are labeled as car, and the remainder (82.4%) are labeled as not car. We're going to start by extracting features from this data. Below are examples of car images and noncar images. 
 
 ![alt text][image1]
 

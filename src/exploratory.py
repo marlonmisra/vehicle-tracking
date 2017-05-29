@@ -12,7 +12,7 @@ vehicle_names = [vehicle_names_left[0], vehicle_names_right[0], vehicle_names_mi
 
 nonvehicle_names = glob.glob('../data/model/raw/non-vehicles/GTI/image*.png')[:4]
 nonvehicle_images = [plt.imread(nonvehicle_name) for nonvehicle_name in nonvehicle_names]
-nonvehicle_labels = ["Example 1", "Example 2", "Example 3", "Example 4"]
+nonvehicle_labels = ["Noncar 1", "Noncar 2", "Noncar 3", "Noncar 4"]
 
 vehicle_labels = ["Left", "Right", "Middle", "Far"]
 
@@ -32,8 +32,8 @@ def plot_car_images():
 		ax.set_title(label)
 		ax.axis('off')
 
-	plt.show()
-	#plt.savefig('../readme_assets/image.png')
+	#plt.show()
+	plt.savefig('../readme_assets/image.png')
 
 def plot_noncar_images():
 	fig, axes = plt.subplots(nrows = 2, ncols = 2)
@@ -45,8 +45,8 @@ def plot_noncar_images():
 		ax.set_title(label)
 		ax.axis('off')
 
-	plt.show()
-	#plt.savefig('../readme_assets/image.png')
+	#plt.show()
+	plt.savefig('../readme_assets/image.png')
 
 
 def plot_all(images, labels=True):
@@ -62,7 +62,7 @@ def plot_all(images, labels=True):
 	plt.savefig('../readme_assets/image.png')
 	
 #plot_car_images()
-#plot_noncar_images()
+plot_noncar_images()
 #plot_all(hog_images)
 
 
