@@ -1,12 +1,12 @@
 ## Vehicle tracking project
 
 ### Introduction 
-After building two lane detection pipelines (one simple, one advanced), this project is about another fundamental problem in self driving cars - the detection other cars. Again, we're using a single front facing car camera for our input video feed. The output is an annotated version of the input feed that includes rectangles around identified cars. For this project, we're strictly focused on the detection of other cars, but the model can easily be trained on trucks, humans, traffic signs, or other objects. 
+After building two lane detection pipelines ([one simple](https://github.com/marlonmisra/lane-finding), [one advanced](https://github.com/marlonmisra/advanced-lane-finding)), this project is about another fundamental problem in self driving cars - the detection other cars. Again, we're using a single front facing car camera for our input video feed. The output is an annotated version of the input feed that includes rectangles around identified cars. For this project, we're strictly focused on the detection of other cars, but the model can easily be trained on trucks, humans, traffic signs, or other objects. 
 
 The steps I'll describe are: 
 * Exploring different feature engineering techniques, including using a histogram of oriented gradients (HOG), a histogram of color, and reduced flattened version of the original image. 
 * Comparing different classifiers, including a Support Vector Machine (SVM), a simple neural net, and a convolutional neural net.
-* Implementing a sliding-window technique to move across the input image and searching for cars using the trained classifier. 
+* Implementing a sliding-window technique where areas of the input image are iteratively searched for the presence of a car car.
 * Running the pipeline on a video stream and making use of prior frames to reduce false positives. 
 * Estimating bounding boxes for detected vehicles
 
@@ -15,9 +15,10 @@ The steps I'll describe are:
 
 [image1]: ./readme_assets/car_images.png "car images"
 [image2]: ./readme_assets/notcar_images.png "noncar images"
-[image3]: ./readme_assets/vehicle_images.png "vehicle images"
-[image4]: ./readme_assets/gray_imgs.png "gray images"
-[image5]: ./readme_assets/hog_imgs.png "hog images"
+[image2]: ./readme_assets/full_test_image.png "full image"
+[image4]: ./readme_assets/vehicle_images.png "vehicle images"
+[image5]: ./readme_assets/gray_imgs.png "gray images"
+[image6]: ./readme_assets/hog_imgs.png "hog images"
 
 
 
@@ -37,6 +38,11 @@ The raw data consists of 64x64 images which are labeled as either car or not car
 
 ![alt text][image2]
 
+
+Note that the above data what will be used for model training and testing. Our ultimate goal, however, is to detect cars on a full image like the one below. 
+
+![alt text][image3]
+
 ### Feature extraction
 
 **Background**
@@ -54,9 +60,9 @@ hog_orientations = 15
 hog_pixels_per_cell = 8
 ```
 
-![alt text][image3]
 ![alt text][image4]
 ![alt text][image5]
+![alt text][image6]
 
 **Color histogram**
 
