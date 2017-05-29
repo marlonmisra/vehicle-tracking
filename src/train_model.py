@@ -31,6 +31,8 @@ X_test = np.load('../data/model/processed/X_test.npy')
 y_train = np.load('../data/model/processed/y_train.npy')
 y_test = np.load('../data/model/processed/y_test.npy')
 
+
+print(X_train.shape)
 #convolutional features
 X_train_convolutional = np.load('../data/model/processed/X_train_convolutional.npy')
 X_test_convolutional = np.load('../data/model/processed/X_test_convolutional.npy')
@@ -40,7 +42,7 @@ y_test_convolutional = np.load('../data/model/processed/y_test_convolutional.npy
 
 #SVM
 def train_SVM():
-	params = {'C':[0.01, 0.1]}
+	params = {'C':[0.01, 0.1, 1]}
 	clf = GridSearchCV(LinearSVC(), params)
 	t=time.time()
 	print("Training samples: ", len(X_train))
@@ -64,12 +66,12 @@ def train_neural():
 	y_test_cat = np_utils.to_categorical(y_test, 2)
 
 	model = Sequential()
-	model.add(Dense(128, input_shape=(4884,)))
+	model.add(Dense(32, input_shape=(6060,)))
 	model.add(Dropout(rate=dropout_prob))
-	model.add(Dense(64))
+	model.add(Dense(32, activation=activation_function))
 	model.add(Dropout(rate=dropout_prob))
-	model.add(Dense(32))
-	model.add(Dense(2, activation=softmax))
+	model.add(Dense(32, activation=activation_function))
+	model.add(Dense(2, activation='softmax'))
 	model.summary()
 	model.compile(loss=loss_function, optimizer='adam', metrics=['accuracy'])
 	history = model.fit(X_train, y_train_cat, batch_size=neural_batches, epochs = neural_epochs, verbose = verbose_level, validation_data=(X_test, y_test_cat))
@@ -83,16 +85,14 @@ def train_convolutional_neural():
 
 	model = Sequential()
 	model.add(Conv2D(filters=16, kernel_size=(3, 3), padding='valid', input_shape=(64, 64, 3)))
+	model.add(Conv2D(filters=16, kernel_size=(3, 3), padding='valid'))
 	model.add(MaxPooling2D(pool_size = (3,3)))
-	model.add(Flatten())
-	model.add(Dense(128,activation=activation_function))
 	model.add(Dropout(rate=dropout_prob))
+	model.add(Flatten())
 	model.add(Dense(64,activation=activation_function))
 	model.add(Dropout(rate=dropout_prob))
 	model.add(Dense(32,activation=activation_function))
-	model.add(Dropout(rate=dropout_prob))
-	model.add(Dense(16,activation=activation_function))
-	model.add(Dropout(rate=dropout_prob))
+	model.add(Dense(32,activation=activation_function))
 	model.add(Dense(2,activation='softmax'))
 	model.summary()
 	model.compile(loss=loss_function, optimizer='adam', metrics=['accuracy'])
@@ -102,7 +102,7 @@ def train_convolutional_neural():
 
 #train_SVM()
 #train_neural()
-#train_convolutional_neural()
+train_convolutional_neural()
 
 
 

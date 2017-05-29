@@ -103,7 +103,7 @@ def build_standard_features(images_list, labels_list):
 	print("Total observations: ", len(X))
 	print("Car sample: ", len(y[y==1]))
 	print("Non-car samples: ", len(y[y==0]))
-	print("Length of feature vector: ", len(X))
+	print("Length of feature vector: ", len(X[0]))
 	print("Training observations: ", len(X_train))
 	print("Testing observations: ", len(X_test))
 

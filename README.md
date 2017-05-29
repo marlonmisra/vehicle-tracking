@@ -1,17 +1,24 @@
 ## Vehicle tracking project
 
 ### Introduction 
-After building two lane detection pipelines (one simple, one advanced), this project is about another fundamental problem in self driving cars - the detection other objects. Again, we're using a single front facing car camera for our input video feed. The output is an annotated version of the input feed that includes rectangles around the objects. For this project, we're strictly focused on the detection of other cars, but the model can easily be trained on trucks, humans, traffic signs, or other objects. 
+After building two lane detection pipelines (one simple, one advanced), this project is about another fundamental problem in self driving cars - the detection other cars. Again, we're using a single front facing car camera for our input video feed. The output is an annotated version of the input feed that includes rectangles around identified cars. For this project, we're strictly focused on the detection of other cars, but the model can easily be trained on trucks, humans, traffic signs, or other objects. 
 
 The steps I'll describe are: 
-* Exploring different feature engineering techniques, including using a histogram of oriented gradients (HOG), a histogram of color, and minimization and flattening of the full input image. 
-* Comparing different classifiers, including a Support Vector Machine (SVM), a simple neural net, and a convolutional neural (fow which I used raw image inputs)
-* Implementing a sliding-window technique to move across the input image and search for cars using the trained classifier. 
+* Exploring different feature engineering techniques, including using a histogram of oriented gradients (HOG), a histogram of color, and reduced flattened version of the original image. 
+* Comparing different classifiers, including a Support Vector Machine (SVM), a simple neural net, and a convolutional neural net.
+* Implementing a sliding-window technique to move across the input image and searching for cars using the trained classifier. 
 * Running the pipeline on a video stream and making use of prior frames to reduce false positives. 
-* Estimating boundinging boxes for detected vehicles
+* Estimating bounding boxes for detected vehicles
 
 
 [//]: # (Image References)
+
+[image1]: ./readme_assets/car_images.png "car images"
+[image2]: ./readme_assets/noncar_images.png "noncar images"
+[image3]: ./readme_assets/vehicle_images.png "vehicle images"
+[image4]: ./readme_assets/gray_images.png "gray images"
+[image5]: ./readme_assets/hog_images.png "hog images"
+
 
 
 ### Files and project navigation 
@@ -24,8 +31,11 @@ The project includes the following files:
 
 ### Data 
 
-Our raw data consists of 64x64 images which are labeled as either car or not car. In total we have 10,885 samples, of which 1,917 (17.6%) are labeled as car, and the remainder (82.4%) are labeled as not car. We're going to prepare two separate sets of features with this data - the first for a convolutional neural network, and the second for other classifiers.
+Our raw data consists of 64x64 images which are labeled as either car or not car. Car images further break down into images from the left, from, middle, and far. In total there 10,885 samples, of which 1,917 (17.6%) are labeled as car, and the remainder (82.4%) are labeled as not car. We're going to start by extracting features from this data. Below are examples of car images and noncar images. 
 
+![alt text][image1]
+
+![alt text][image2]
 
 ### Feature extraction
 
@@ -35,16 +45,24 @@ We also want to try other models like Support Vector Machines. For classifiers l
 
 **Histogram of oriented gradients (HOG)**
 
-HOG's are known to be good predictors of object presence. They work by first calculating the gradient magnitude and direction at each pixel. Then, the individual pixel values are grouped into cells of size x*x. Then, for each cell a histogram of gradient directions is computed (where magnitude is also considered). When you do this for all cells and plot a result you begin to see a representation of the original structure, and that is what a HOG is. The reason this feature is so useful is because it's robust to changes in color and small variations in shape. To implement, I used the `hog()` function from skimage.feature. The output is a vector which I later combine to the other features. The following parameters worked best for me.  
+HOG's are known to be good predictors of object presence. They work by first calculating the gradient magnitude and direction at each pixel. Then, the individual pixel values are grouped into cells of size x*x. Then, for each cell a histogram of gradient directions is computed (where magnitude is also considered). When you do this for all cells and plot a result you begin to see a representation of the original structure, and that is what a HOG is. The reason this feature is so useful is because it's robust to changes in color and small variations in shape. To implement, I used the `hog()` function from skimage.feature. The parameters I used are below.  
+
+I've also plotted the original images, grey images (you convert to grayscale before applying the hog function), and the hog images. Note that the last hog image is only a visualization - the feature is a flattened out vector of that representation.
 
 ```python
 hog_orientations = 15
 hog_pixels_per_cell = 8
 ```
 
+![alt text][image3]
+
+![alt text][image4]
+
+![alt text][image5]
+
 **Color histogram**
 
-The color histogram is similar to the HOG. I decided to include it so that the model could make use of color information. The function to extract the color features was defined as follows.
+The color histogram is, like the name suggests, a histogram of numbers. The function to extract the color features was defined as follows. I didn't include a visualization of this feature because it's intuitive. I used 16 bins of colors. 
 
 ```python
 def color_hist(image, bins = 16, bins_range = (0,256), vis = False):
@@ -129,11 +147,11 @@ X_train, X_test, y_train, y_test = train_test_split(scaled_X, y, test_size=test_
 
 I implemented the SVM using the Keras LinearSVM module. I also utilized GridSearchCV to test a range of C parameters. The C parameter tells the SVM optimization how important it is to avoid misclassifying each training example. For large values of C, the optimization will choose a smaller-margin hyperplane if that hyperplane does a better job of classifying all the training points. Conversely, a small C value will cause the optimizer to look for a larger-margin separating hyperplane, even if that implies more misclassification. 
 
-I was able to achieve an accuracy of 98.1% using C = 0.01. 
+I was able to achieve an accuracy of 98.622% using C = 0.01. 
 
 ```python
 def train_SVM():
-	params = {'C':[0.001, 0.01, 0.1, 1, 10]}
+	params = {'C':[0.01, 0.1, 1]}
 	clf = GridSearchCV(LinearSVC(), params)
 	clf.fit(X_train, y_train)
 	pred = clf.predict(X_test)
@@ -145,14 +163,15 @@ def train_SVM():
 
 **Approach 2 - Neural network with derived features**
 
-The second technique I tried was a standard neural network. I still used the derived features because I figured the raw features were best left to the the last approach (a conv. neural network).
+The second technique I tried was a simple fully connected neural network. I still used the derived features because non-convolutional networks are not good at doing feature extraction on images on their own. 
 
-I experimented with different network architectures, layer types, and parameters. Ultimately, I found standard dense layers to work best, coupled with Dropout regularization layers to teach the model redundancy. I used a softmax activation function on the last layer so that I could use categorical crossentropy as the loss function. 
+I experimented with different network architectures, layer types, and parameters. Ultimately, I found dense layers to work best, coupled with Dropout regularization layers to teach the model redundancy. I used a softmax activation function on the last layer so that I could use categorical crossentropy as the loss function. 
 
-With the setup below I was able to achieve a testing accuracy of 97.6%. 
+With the setup below I was able to achieve a testing accuracy of 99.450%. 
 
 ```python
 dropout_prob = 0.6
+activation_function = 'relu'
 loss_function = 'categorical_crossentropy'
 neural_batches = 64
 neural_epochs = 10 
@@ -163,12 +182,12 @@ def train_neural():
 	y_train_cat = np_utils.to_categorical(y_train, 2) 
 	y_test_cat = np_utils.to_categorical(y_test, 2)
 	model = Sequential()
-	model.add(Dense(128, input_shape=(4884,)))
+	model.add(Dense(32, input_shape=(6060,)))
 	model.add(Dropout(rate=dropout_prob))
-	model.add(Dense(64))
+	model.add(Dense(32, activation=activation_function))
 	model.add(Dropout(rate=dropout_prob))
-	model.add(Dense(32))
-	model.add(Dense(2, activation=softmax))
+	model.add(Dense(32, activation=activation_function))
+	model.add(Dense(2, activation='softmax'))
 	model.summary()
 	model.compile(loss=loss_function, optimizer='adam', metrics=['accuracy'])
 	history = model.fit(X_train, y_train_cat, batch_size=neural_batches, epochs = neural_epochs, verbose = verbose_level, validation_data=(X_test, y_test_cat))
@@ -178,7 +197,7 @@ def train_neural():
 
 **Approach 3 - Convolutional neural network with raw features**
 
-For this last approach I decided to use raw features rather than the derived features. I did this because the whole point of a convolutional layer is to be able to handle and make sense of 3 dimensional images inputs and derive better features for successive layers. Immidiately after the convolutional layer, I also made use of a MaxPooling2D layer to squeeze the spatial dimensions and reduce commplexity. 
+For this last approach I used raw features instead of the derived ones. I did this because convolutional layers do feature extraction on images really well and I wanted to see how testing accuracy compared with the other approaches. After the convolutioanl layer, I also used a MaxPooling2D layer to squeeze the spatial dimensions and reduce complexity, so that training runs faster. 
 
 With the setup below I was able to achieve a testing accuracy of 97.6%.
 
