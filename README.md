@@ -145,7 +145,7 @@ X_train, X_test, y_train, y_test = train_test_split(scaled_X, y, test_size=test_
 
 I implemented the SVM using the Keras LinearSVM module. I also utilized GridSearchCV to test a range of C parameters. The C parameter tells the SVM optimization how important it is to avoid misclassifying each training example. For large values of C, the optimization will choose a smaller-margin hyperplane if that hyperplane does a better job of classifying all the training points. Conversely, a small C value will cause the optimizer to look for a larger-margin separating hyperplane, even if that implies more misclassification. 
 
-I was able to achieve an accuracy of 98.622% using C = 0.01. 
+I was able to achieve an accuracy of 98.62% using C = 0.01. 
 
 ```python
 def train_SVM():
@@ -165,7 +165,7 @@ The second technique I tried was a simple fully connected neural network. I stil
 
 I experimented with different network architectures, layer types, and parameters. Ultimately, I found dense layers to work best, coupled with Dropout regularization layers to teach the model redundancy. I used a softmax activation function on the last layer so that I could use categorical crossentropy as the loss function. 
 
-With the setup below I was able to achieve a testing accuracy of 99.450%. 
+With the setup below I was able to achieve a testing accuracy of 99.45%. 
 
 ```python
 dropout_prob = 0.6
@@ -197,7 +197,7 @@ def train_neural():
 
 For this last approach I used raw features instead of the derived ones. I did this because convolutional layers do feature extraction on images really well and I wanted to see how testing accuracy compared with the other approaches. After the convolutioanl layer, I also used a MaxPooling2D layer to squeeze the spatial dimensions and reduce complexity, so that training runs faster. 
 
-With the setup below I was able to achieve a testing accuracy of 97.6%.
+With the setup below I was able to achieve a testing accuracy of 99.08%.
 
 ```python
 dropout_prob = 0.6
