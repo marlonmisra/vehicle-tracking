@@ -6,8 +6,8 @@ from build_features import *
 from keras.models import load_model
 
 #PARAMS
-model_choice = 'svm' #svm, neural, convolutional
-heatmap_threshold = 0 #adjust down for image
+model_choice = 'convolutional' #svm, neural, convolutional
+heatmap_threshold = 2 #adjust to 3 for image, 20 for video
 deque_len = 7
 window_overlap = (0.75,0.75)
 smallest_window_size = (48, 48)

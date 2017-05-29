@@ -50,7 +50,7 @@ def plot_noncar_images():
 
 
 def plot_all(images, labels=True):
-	fig, axes = plt.subplots(nrows=1, ncols=2)
+	fig, axes = plt.subplots(nrows=1, ncols=2, figsize = (10,3))
 	axes = axes.ravel()
 	fig.tight_layout()
 
@@ -62,8 +62,8 @@ def plot_all(images, labels=True):
 	plt.savefig('../readme_assets/image.png')
 	
 #plot_car_images()
-plot_noncar_images()
-#plot_all(hog_images)
+#plot_noncar_images()
+plot_all(vehicle_images)
 
 
 

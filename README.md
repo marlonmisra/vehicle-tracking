@@ -197,7 +197,7 @@ def train_neural():
 
 For this last approach I used raw features instead of the derived ones. I did this because convolutional layers do feature extraction on images really well and I wanted to see how testing accuracy compared with the other approaches. After the convolutioanl layer, I also used a MaxPooling2D layer to squeeze the spatial dimensions and reduce complexity, so that training runs faster. 
 
-With the setup below I was able to achieve a testing accuracy of 99.08%.
+With the setup below I was able to achieve a testing accuracy of 99.08%. The convolutional neural net took by far the longest to train at at 960 seconds. It also took more epochs (25) for accuracies to get into the high 90s range, whereas that happened much faster for standard covnets. 
 
 ```python
 dropout_prob = 0.6
