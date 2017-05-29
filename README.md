@@ -47,7 +47,7 @@ Note that the above data what will be used for model training and testing. Our u
 
 **Background**
 
-We also want to try other models like Support Vector Machines. For classifiers like that it's important to first do feature engineering. Otherwise the data is too complex and the model will take too long to train. In addition, many feature extraction techniques have been explored by others and are proven to work well for this type of task. 
+For traditional classifiers like Support Vector Machines, it's important to first do feature engineering. If you don't, the features are too large and the model will take too long to train. There has also been lots of work done to figure out what good derived features are, so we are going to implement some of those. 
 
 **Histogram of oriented gradients (HOG)**
 
@@ -66,7 +66,7 @@ hog_pixels_per_cell = 8
 
 **Color histogram**
 
-The color histogram is, like the name suggests, a histogram of numbers. The function to extract the color features was defined as follows. I didn't include a visualization of this feature because it's intuitive. I used 16 bins of colors. 
+The color histogram is the second feature we're going to make use of. It complements the HOG well because rather than focusing on edge distributin, it's focused on color distribution. The function to extract the color features was defined as follows. I used 16 bins of colors. 
 
 ```python
 def color_hist(image, bins = 16, bins_range = (0,256), vis = False):
@@ -79,7 +79,7 @@ def color_hist(image, bins = 16, bins_range = (0,256), vis = False):
 
 **Colorspace-transformed reduced image**
 
-The purpose of this feature is to capture as much as possible from the raw image, while still significantly reducing complexity. The approach to derive this feature is to (1) convert the RGB image to a more useful colorspace, (2) resize the image to be smaller and (3) flatten the image. The two functions below were applied in sequence with the following parameters. 
+The purpose of this feature is to capture as much information as possible from the original raw image, while significantly reducing feature size. The approach I used to derive this feature is to (1) convert the RGB image to a colorspace that highlighted edgres more, (2) resize the image to be smaller and (3) flatten the image. The two functions below were applied in sequence with the following parameters. 
 
 ```python
 color_space = 'YCrCb'
@@ -110,7 +110,7 @@ def reduce_and_flatten(image, new_size = (32,32)):
 
 **Combining the features into a single feature**
 
-The previous 3 feature extraction techniques each returned a vector. This means that to combine them, we can simply append them to each other. The function I defined to this is below. I defined it in a way that lets me exclude any one of the three features, so that I can test if that improves accuracy. 
+The previous 3 feature extraction techniques each returned a vector. To combine them, I simply appended them to each other. The function I defined to this is below. I defined it in a way that lets me exclude any one of the three features, so that I can test if that improves accuracy. 
 
 ```python
 def get_features(image, use_hog = True, use_color_hist = True, use_mini = True, mini_color_space = 'HSV', mini_size = (32,32), hog_orient = 9, hog_pix_per_cell = 8, hog_cell_per_block = 2):
@@ -127,20 +127,13 @@ def get_features(image, use_hog = True, use_color_hist = True, use_mini = True, 
     return X
 ```
 
-**Normalizing**
+**Normalizing, randomizing, and splitting**
 
-We now have feature vectors which we created by combining 3 separate features. Rather than using these directly, it's always good to normailize. To do that, I utilizer the sklearn.preprocessing StandardScaler module.
+We now have feature vectors which we created by combining 3 separate features. Rather than using these directly, since they each have different relative magnitudes, I normalized them. I utilized the sklearn.preprocessing StandardScaler module for that. After that, I used the sklearn.model\_select train\_test\_split function to randomize and split the data into training and testing sets. I dedicated 20% of all observations to testing.
 
 ```python
 X_scaler = StandardScaler().fit(X)
 scaled_X = X_scaler.transform(X) 
-```
-
-**Randomizing and splitting**
-
-I used the sklearn.model\_select train\_test\_split function to split randomize the data into training and testing sets. I dedicated 20% of all observations to testing.
-
-```python
 X_train, X_test, y_train, y_test = train_test_split(scaled_X, y, test_size=test_fraction, random_state=42)
 ```
 
@@ -149,7 +142,7 @@ X_train, X_test, y_train, y_test = train_test_split(scaled_X, y, test_size=test_
 
 **Approach 1 - Support Vector Machine with derived features**
 
-I implemented the SVM using the Keras LinearSVM module. I also utilized GridSearchCV to test a range of C parameters. The C parameter tells the SVM optimization how important it is to avoid misclassifying each training example. For large values of C, the optimization will choose a smaller-margin hyperplane if that hyperplane does a better job of classifying all the training points. Conversely, a small C value will cause the optimizer to look for a larger-margin separating hyperplane, even if that implies more misclassification. 
+I implemented the SVM using the Keras LinearSVM module and utilized GridSearchCV to test a range of C parameters. The C parameter tells the SVM optimization how important it is to avoid misclassifying each training example. For large values of C, the optimization will choose a smaller-margin hyperplane if that hyperplane does a better job of classifying all the training points. Conversely, a small C value will cause the optimizer to look for a larger-margin separating hyperplane, even if that implies more misclassification. 
 
 I was able to achieve an accuracy of 98.62% using C = 0.01. 
 
@@ -169,7 +162,7 @@ def train_SVM():
 
 The second technique I tried was a simple fully connected neural network. I still used the derived features because non-convolutional networks are not good at doing feature extraction on images on their own. 
 
-I experimented with different network architectures, layer types, and parameters. Ultimately, I found dense layers to work best, coupled with Dropout regularization layers to teach the model redundancy. I used a softmax activation function on the last layer so that I could use categorical crossentropy as the loss function. 
+I experimented with different network architectures, layer types, and parameters. Ultimately, I found dense layers to work best, coupled with Dropout regularization layers to teach the model redundancy. To introduce nonlinearity into the network I used standard relu function except for the last layer where I used a softmax activation function so that I can use categorical crossentropy as the loss function. 
 
 With the setup below I was able to achieve a testing accuracy of 99.45%. 
 
@@ -201,7 +194,7 @@ def train_neural():
 
 **Approach 3 - Convolutional neural network with raw features**
 
-For this last approach I used raw features instead of the derived ones. I did this because convolutional layers do feature extraction on images really well and I wanted to see how testing accuracy compared with the other approaches. After the convolutioanl layer, I also used a MaxPooling2D layer to squeeze the spatial dimensions and reduce complexity, so that training runs faster. 
+For the last approach I used raw features instead of the derived ones. I did this because convolutional layers do feature extraction on images really well and I wanted to see how well raw features worked compared to the derived ones. After the convolutioanl layer, I used a MaxPooling2D layer to squeeze the spatial dimensions and reduce complexity, so that training runs faster. 
 
 With the setup below I was able to achieve a testing accuracy of 99.08%. The convolutional neural net took by far the longest to train at at 960 seconds. It also took more epochs (25) for accuracies to get into the high 90s range, whereas that happened much faster for standard covnets. 
 
@@ -243,7 +236,7 @@ def train_convolutional_neural():
 
 Now that the classifiers are saved, the next step is to come up with a technique to apply them. Recall that model training was done on 64*64 images which were labeled car or no car. However, the images that the pipeline runs on are coming off of the front-facing camera. This means the image is much larger and contains many more things (the sky, parallel lanes, other cars, etc.). 
 
-The approach we're going to take is to apply a window search, where we iteratively shift a window over sections of the image and do a search at each stopping point. The function that finds windows on an image, given a window size, starting coordinates, and overlap parameters, is as follows.
+To deal with that, we're going to use a window search technique where we iteratively shift a window over sections of the image and do a search for a car at that location. The function that performs the search is below. 
 
 
 ```python
@@ -282,17 +275,16 @@ def slide_window(image, x_start_stop=[None, None], y_start_stop=[None, None], y_
 
 **Window parameters**
 
-This above function works on window sizes of arbitrary size and this is important. When the search happens near the bottom of the image the windows must be large (images close to the car appear bigger). In comparison, images that are further away appear in much smaller windows. Because of that, we defined 4 different window sizes. 
+This above function works on window sizes of arbitrary dimensions. This is important because when the search happens near the bottom of the image (where other cars are close), the windows have to be larger because cars closer to your car appear to be larger. Conversely, cars that are higher in the image (further away in real life) require smaller windows. Because of that, we defined 4 different window sizes. 
 
-We can also restrict the area to search in. For example, we don't care if any cars are detected at the very top of the image.
-
-Lastly, we have to define a window_overlap parameter which sets the amount a window is shifted in each iteration. 
+We can also restrict the area to search in. For example, we don't care if any cars are detected at the very top of the image.Lastly, we have to define a window_overlap parameter which sets the amount a window is shifted in each iteration. 
 
 ```python
 smallest_window_size = (48, 48)
 small_window_size = (64, 64)
 medium_window_size = (96, 96)
 large_window_size = (128, 128)
+
 smallest_x_start_stop = [500, None]
 small_x_start_stop = [0, None]
 medium_x_start_stop = [0, None]
@@ -301,6 +293,7 @@ smallest_y_start_stop = [320, 500]
 small_y_start_stop = [350, 550]
 medium_y_start_stop = [400, 600]
 large_y_start_stop = [450, 700]
+
 window_overlap = (0.75,0.75)
 ```
 

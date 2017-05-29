@@ -1,6 +1,7 @@
 import glob
 import matplotlib.pyplot as plt
 from functions import *
+from predict_model import *
 
 
 #IMAGES AND CONSTANTS
@@ -19,6 +20,17 @@ vehicle_labels = ["Left", "Right", "Middle", "Far"]
 vehicle_images = [plt.imread(vehicle_name) for vehicle_name in vehicle_names]
 gray_images = [make_gray(vehicle_image) for vehicle_image in vehicle_images]
 hog_images = [hist_of_gradients(gray_image, orient = 15, pix_per_cell = 8, cell_per_block = 2, vis = True)[1] for gray_image in gray_images]
+
+full_image = read_images()[0]
+positive_detections = process_frame(full_image, model_type = 'svm', heatmap_thresh = -1, all_outputs = True)[0]
+heatmaps = process_frame(full_image, model_type = 'svm', heatmap_thresh = -1, all_outputs = True)[1]
+thresholded_heatmaps = process_frame(full_image, model_type = 'svm', heatmap_thresh = -1, all_outputs = True)[2]
+final_images = process_frame(full_image, model_type = 'svm', heatmap_thresh = -1, all_outputs = True)[3]
+
+plt.imshow(positive_detections)
+plt.imshow(heatmaps)
+plt.show()
+
 
 
 
@@ -64,7 +76,7 @@ def plot_all(images, labels=True):
 	
 #plot_car_images()
 #plot_noncar_images()
-plot_all(hog_images, labels=False)
+#plot_all(hog_images, labels=False)
 
 
 

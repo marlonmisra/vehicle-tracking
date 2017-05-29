@@ -6,8 +6,8 @@ from build_features import *
 from keras.models import load_model
 
 #PARAMS
-model_choice = 'convolutional' #svm, neural, convolutional
-heatmap_threshold = 2 #adjust to 3 for image, 20 for video
+model_choice = 'svm' #svm, neural, convolutional
+heatmap_threshold = -1 #adjust to 3 for image, 20 for video
 deque_len = 7
 window_overlap = (0.75,0.75)
 smallest_window_size = (48, 48)
@@ -57,7 +57,7 @@ def convolutional_procedure(img):
 
 
 #PROCESS FRAME
-def process_frame(frame, model_type = 'svm'):
+def process_frame(frame, model_type = 'svm', heatmap_thresh = heatmap_threshold, all_outputs=False):
 	frame = frame.astype(np.float32)
 	frame /= 255.0
 	
@@ -91,18 +91,23 @@ def process_frame(frame, model_type = 'svm'):
 		heatmaps.append(heatmap)
 		if len(heatmaps)==deque_len:
 			heatmap = sum(heatmaps)
-		heatmap_2 = apply_threshold(heatmap, heatmap_threshold)
+		heatmap_2 = apply_threshold(heatmap, heatmap_thresh)
 		labels = label(heatmap_2) #tuple with 1st element color-coded heatmap and second elment int with number of cars
 		image_final = draw_labeled_boxes(np.copy(frame), labels)
 	else:
 		image_final = np.copy(frame)
 	print('length', len(heatmaps))
-	return image_final #* 255 for video
+	if all_outputs == True:
+		return image_windows, heatmap, heatmap_2, image_final
+	else:
+		return image_final #* 255 for video
 
-test_images = read_images()
-a = process_frame(test_images[0], model_type = model_choice)
-plt.imshow(a)
-plt.show()
+#test_images = read_images()
+#a = process_frame(test_images[0], model_type = model_choice, heatmap_thresh = -1)
+#plt.imshow(a)
+#plt.show()
+
+
 
 
 
