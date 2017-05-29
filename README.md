@@ -15,7 +15,7 @@ The steps I'll describe are:
 
 [image1]: ./readme_assets/car_images.png "car images"
 [image2]: ./readme_assets/notcar_images.png "noncar images"
-[image3]: ./readme_assets/full_test_image.png "full image"
+[image3]: ./readme_assets/full_test_image.jpg "full image"
 [image4]: ./readme_assets/vehicle_images.png "vehicle images"
 [image5]: ./readme_assets/gray_imgs.png "gray images"
 [image6]: ./readme_assets/hog_imgs.png "hog images"
