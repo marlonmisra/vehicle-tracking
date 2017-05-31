@@ -157,7 +157,7 @@ X_train, X_test, y_train, y_test = train_test_split(scaled_X, y, test_size=test_
 
 **Approach 1 - Support Vector Machine with derived features**
 
-I implemented the SVM using the Keras LinearSVM module and utilized GridSearchCV to test a range of C parameters. The C parameter tells the SVM optimization how important it is to avoid misclassifying each training example. For large values of C, the optimization will choose a smaller-margin hyperplane if that hyperplane does a better job of classifying all the training points. Conversely, a small C value will cause the optimizer to look for a larger-margin separating hyperplane, even if that implies more misclassification. 
+I implemented the SVM using the Keras LinearSVM module and utilized GridSearchCV to test a range of C parameters. The C parameter tells the SVM optimization how important it is to avoid misclassifying each training example. In my testing, smaller C values led to better results because they minimized overfitting. 
 
 I was able to achieve an accuracy of 98.62% using C = 0.01. 
 
@@ -177,7 +177,7 @@ def train_SVM():
 
 The second technique I tried was a simple fully connected neural network. I still used the derived features because non-convolutional networks are not good at doing feature extraction on images on their own. 
 
-I experimented with different network architectures, layer types, and parameters. Ultimately, I found dense layers to work best, coupled with Dropout regularization layers to teach the model redundancy. To introduce nonlinearity into the network I used standard relu function except for the last layer where I used a softmax activation function so that I can use categorical crossentropy as the loss function. 
+I experimented with different network architectures, layer types, and parameters. Ultimately, I found dense layers to work best, coupled with Dropout regularization layers to teach the model redundancy. To introduce nonlinearity into the network I used ReLU activation functions except for the last layer where I used a softmax activation function so that I could use categorical crossentropy as the loss function. 
 
 With the setup below I was able to achieve a testing accuracy of 99.45%. 
 
@@ -288,9 +288,9 @@ def slide_window(image, x_start_stop=[None, None], y_start_stop=[None, None], y_
 
 **Window parameters**
 
-This above function works on window sizes of arbitrary dimensions. This is important because when the search happens near the bottom of the image (where other cars are close), the windows have to be larger because cars closer to your car appear to be larger. Conversely, cars that are higher in the image (further away in real life) require smaller windows. Because of that, we defined 4 different window sizes. 
+The above function works on window sizes of arbitrary dimensions. This is important because when the search happens near the bottom of the image (where other cars are close), the windows have to be larger because cars closer to the car appear to be larger. Conversely, cars that are higher in the image (further away in real life) require smaller windows. Because of that, I defined 4 different window sizes. 
 
-There are other things we can specify as well. First, we can restrict the area to search in. For example, we don't care if any cars are detected at the very top of the image or the far sides. We can also specify how much the windows shift in each iteration by setting the `window_overlap` parameter. Images of all windows that found matches are below.
+There are other things we can specify as well. First, we can restrict the area to search in. For example, we don't need to search on the very top of the image or the areas far on the sides because cars would not appear there. We can also specify how much the windows shift in each iteration by setting the `window_overlap` parameter. Images of all windows that found matches are below.
 
 ```python
 smallest_window_size = (48, 48)
@@ -320,9 +320,9 @@ window_overlap = (0.75,0.75)
 
 Now that we have "true windows" or areas of the image where our classifier detected cars, we want to remove false positives. To do that, we're going to make use of heatmaps.
 
-Starting with a copy of the original image where each pixel is set to 0, we use the `add_heat()` function and add 1 to any any pixel that is covered by a true window. Since there are multiple size windows and overlaps can occur, on the heatmap (2nd row of images), some areas are hotter than others. Next, we apply a threshold to this heatmap so that areas where few windows overlap are exluded. Mathematically, we set those values back to 0. That's why on thresholded heatmap (3rd row of images), there are fewer hot areas. Then, as the last step, we make use of the scipy.ndimage.measurements `label()` function to turn our thresholded heatmap into discrete areas. The output of that is represented in the 4th row of images. 
+Starting with a copy of the original image where each pixel is set to 0, we use the `add_heat()` function and add 1 to any pixel that is covered by a true window. Since there are multiple size windows and overlaps can occur, on the heatmap (2nd row of images), some areas are hotter than others. Next, we apply a threshold to this heatmap so that areas where few windows overlap are excluded. Mathematically, we set those values back to 0. That's why on thresholded heatmap (3rd row of images), there are fewer hot areas. Then, as the last step, we make use of the scipy.ndimage.measurements `label()` function to turn our thresholded heatmap into discrete areas. The output of that is represented in the 4th row of images. 
 
-In the actual video pipeline, I've increased the heatmap_threshold and also made of a heatmaps deque. The purpose of this is to keep track of multiple frames and do smoothing. This works really well because false positive usually don't occur consistently over multiple frames. 
+For the video pipeline, I increased the heatmap_threshold and also made of a heatmaps deque. The purpose of this is to keep track of multiple frames and do smoothing. This works really well because false positive usually don't occur consistently over multiple frames. 
 
 ```python
 heatmap_threshold = 2
