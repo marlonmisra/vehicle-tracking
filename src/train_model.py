@@ -66,9 +66,9 @@ def train_neural():
 	y_test_cat = np_utils.to_categorical(y_test, 2)
 
 	model = Sequential()
-	model.add(Dense(64, input_shape=(6060,)))
+	model.add(Dense(16, input_shape=(6060,)))
 	model.add(Dropout(rate=dropout_prob))
-	model.add(Dense(32, activation=activation_function))
+	model.add(Dense(16, activation=activation_function))
 	model.add(Dropout(rate=dropout_prob))
 	model.add(Dense(16, activation=activation_function))
 	model.add(Dense(2, activation='softmax'))
