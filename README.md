@@ -6,7 +6,7 @@ After building two lane detection pipelines ([simple](https://github.com/marlonm
 The steps I'll describe are: 
 * Exploring different feature engineering techniques, including using a histogram of oriented gradients (HOG), a histogram of color, and reduced flattened version of the original image. 
 * Comparing different classifiers, including a Support Vector Machine (SVM), a simple neural net, and a convolutional neural net.
-* Implementing a sliding-window technique where areas of the input image are iteratively searched for the presence of a car car.
+* Implementing a sliding-window technique where areas of the input image are iteratively searched for the presence of a car.
 * Running the pipeline on a video stream and making use of prior frames to reduce false positives. 
 
 
@@ -179,7 +179,7 @@ The second technique I tried was a simple fully connected neural network. I stil
 
 I experimented with different network architectures, layer types, and parameters. Ultimately, I found dense layers to work best, coupled with Dropout regularization layers to teach the model redundancy. To introduce nonlinearity into the network I used ReLU activation functions except for the last layer where I used a softmax activation function so that I could use categorical crossentropy as the loss function. 
 
-With the setup below I was able to achieve a testing accuracy of 99.45%. 
+With the setup below, I was able to achieve a testing accuracy of 99.45%. 
 
 ```python
 dropout_prob = 0.6
