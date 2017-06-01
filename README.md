@@ -1,7 +1,7 @@
 ## Vehicle tracking project
 
 ### Introduction 
-After building two lane detection pipelines ([simple](https://github.com/marlonmisra/lane-finding), [advanced](https://github.com/marlonmisra/advanced-lane-finding)), this project is about another fundamental problem in self driving cars - the detection other cars. Again, we're using a single front facing car camera for our input video feed. The output is an annotated version of the input feed that includes rectangles around identified cars. For this project, we're strictly focused on the detection of other cars, but the model can easily be trained on trucks, humans, traffic signs, or other objects. 
+After building two lane detection pipelines ([simple](https://github.com/marlonmisra/lane-finding), [advanced](https://github.com/marlonmisra/advanced-lane-finding)), this project is about another fundamental problem in self driving cars - the detection of other cars. Again, we're using a single front facing car camera for our input video feed. The output is an annotated version of the input feed that includes rectangles around identified cars. For this project, we're strictly focused on the detection of other cars, but the model can easily be trained on trucks, humans, traffic signs, or other objects. 
 
 The steps I'll describe are: 
 * Exploring different feature engineering techniques, including using a histogram of oriented gradients (HOG), a histogram of color, and reduced flattened version of the original image. 
